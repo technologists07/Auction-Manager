@@ -1,0 +1,10 @@
+{
+  "description": "Manage community cricket auctions with tools to organize tournaments, track players and team purses, and run live bidding for apartment sports clubs.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
