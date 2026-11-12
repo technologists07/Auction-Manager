@@ -18,3 +18,6 @@ Team-button bidding
 Light/Dark theme support
 IPL-inspired auction experience
 Projector mode support
+
+ 
+  Prototype Link : https://www.figma.com/make/znMPAfYcWJF1CpE3KL19Ez/Community-Sports-Auction-Manager?t=eFDJSBQ0Nz1rh9HT-1
