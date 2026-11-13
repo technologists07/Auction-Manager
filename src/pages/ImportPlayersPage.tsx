@@ -1,34 +1,97 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
+import * as XLSX from "xlsx";
 import { Icon } from "../components/Icon";
 import { PageTitle } from "../components/PageTitle";
+import { useAuction } from "../context/AuctionContext";
+
+interface ParsedRow {
+  rowNum: number;
+  name: string;
+  role: string;
+  base_price: number;
+  error?: string;
+}
 
 export function ImportPlayersPage({ done }: { done: () => void }) {
+  const { importPlayersBatch } = useAuction();
+  const fileRef = useRef<HTMLInputElement | null>(null);
   const [step, setStep] = useState<1 | 2>(1);
+  const [fileName, setFileName] = useState("");
+  const [rows, setRows] = useState<ParsedRow[]>([]);
+  const [importing, setImporting] = useState(false);
+
+  const validRows = rows.filter((r) => !r.error);
+  const errorRows = rows.filter((r) => Boolean(r.error));
+
+  const downloadTemplate = () => {
+    const ws = XLSX.utils.json_to_sheet([
+      { name: "Virat Sharma", role: "Batsman", base_price: 5000 },
+      { name: "Rahul Nair", role: "All-rounder", base_price: 4000 },
+      { name: "Vikram Patel", role: "Fast Bowler", base_price: 3500 },
+    ]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Players");
+    XLSX.writeFile(wb, "players_template.xlsx");
+  };
+
+  const handleFile = async (file: File) => {
+    const buffer = await file.arrayBuffer();
+    const workbook = XLSX.read(buffer, { type: "array" });
+    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rawRows = XLSX.utils.sheet_to_json<Record<string, unknown>>(firstSheet, { defval: "" });
+
+    const parsed: ParsedRow[] = rawRows.map((record, i) => {
+      const entries = Object.entries(record).map(([k, v]) => [k.trim().toLowerCase(), v] as const);
+      const findVal = (keywords: string[]) =>
+        entries.find(([k]) => keywords.some((kw) => k.includes(kw)))?.[1];
+
+      const name = String(findVal(["name", "player"]) ?? "").trim();
+      const role = String(findVal(["role", "position", "type"]) ?? "").trim() || "All-rounder";
+      const rawPrice = String(findVal(["price", "base", "amount"]) ?? "3000");
+      const base_price = Number(rawPrice.replace(/[^0-9.]/g, ""));
+
+      let error: string | undefined;
+      if (!name) error = "Player name is required";
+      else if (Number.isNaN(base_price) || base_price <= 0) error = "Valid Base Price is required";
+
+      return { rowNum: i + 2, name: name || "(Empty)", role, base_price: base_price || 0, error };
+    });
+
+    setFileName(file.name);
+    setRows(parsed);
+    setStep(2);
+  };
+
+  const commitImport = async () => {
+    if (validRows.length === 0) return;
+    setImporting(true);
+    try {
+      await importPlayersBatch(
+        validRows.map((r) => ({ name: r.name, role: r.role, base_price: r.base_price })),
+      );
+      done();
+    } finally {
+      setImporting(false);
+    }
+  };
 
   return (
     <main className="p-8">
       <PageTitle
         title="Import Players"
-        description="Upload and validate player records before adding them to the tournament."
+        description="Upload an Excel (.xlsx, .xls) or .csv file to validate and import players into Supabase."
       />
       <div className="mx-auto max-w-4xl">
-        <div className="mb-6 flex items-center justify-center">
-          <div className="flex items-center">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 text-xs font-bold text-white">
-              1
-            </span>
-            <span className="ml-2 text-xs font-bold text-slate-700">Upload Excel</span>
-            <span className="mx-5 h-px w-28 bg-slate-200" />
-            <span
-              className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ${
-                step === 2 ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-400"
-              }`}
-            >
-              2
-            </span>
-            <span className="ml-2 text-xs font-bold text-slate-700">Validation Results</span>
-          </div>
-        </div>
+        <input
+          ref={fileRef}
+          type="file"
+          accept=".xlsx,.xls,.csv"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) void handleFile(f);
+          }}
+        />
 
         {step === 1 ? (
           <section className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
@@ -37,26 +100,29 @@ export function ImportPlayersPage({ done }: { done: () => void }) {
                 <Icon name="upload" size={25} />
               </div>
               <h3 className="mt-5 text-lg font-extrabold text-slate-900">
-                Drop your Excel file here
+                Upload your Excel or CSV file
               </h3>
               <p className="mt-2 text-xs text-slate-500">
-                Supports .xlsx and .csv files up to 10 MB
+                Supports .xlsx, .xls, and .csv with columns: name, role, base_price
               </p>
               <button
-                onClick={() => setStep(2)}
+                onClick={() => fileRef.current?.click()}
                 className="mt-6 rounded-lg bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-emerald-200"
               >
-                Browse Files
+                Browse Excel / CSV File
               </button>
             </div>
             <div className="mt-5 flex items-center justify-between rounded-lg bg-slate-50 p-4">
               <div>
                 <p className="text-xs font-bold text-slate-700">Need the correct format?</p>
                 <p className="mt-1 text-[10px] text-slate-400">
-                  Download our template with all required player fields.
+                  Download our Excel (.xlsx) template with the required columns.
                 </p>
               </div>
-              <button className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-[10px] font-bold text-slate-600">
+              <button
+                onClick={downloadTemplate}
+                className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-[10px] font-bold text-slate-600"
+              >
                 <Icon name="upload" size={14} className="rotate-180" /> Download Template
               </button>
             </div>
@@ -67,19 +133,17 @@ export function ImportPlayersPage({ done }: { done: () => void }) {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-base font-extrabold text-slate-900">Validation Complete</h3>
-                  <p className="mt-1 text-[11px] text-slate-400">
-                    players_gmpl_2027.xlsx • Checked just now
-                  </p>
+                  <p className="mt-1 text-[11px] text-slate-400">{fileName}</p>
                 </div>
                 <span className="rounded-full bg-amber-50 px-3 py-1.5 text-[10px] font-bold text-amber-700">
-                  3 rows need attention
+                  {errorRows.length} rows need attention
                 </span>
               </div>
               <div className="mt-5 grid grid-cols-3 gap-3">
                 {[
-                  ["Records Found", "74", "text-slate-900"],
-                  ["Valid Rows", "71", "text-emerald-600"],
-                  ["Error Rows", "3", "text-red-500"],
+                  ["Records Found", String(rows.length), "text-slate-900"],
+                  ["Valid Rows", String(validRows.length), "text-emerald-600"],
+                  ["Error Rows", String(errorRows.length), "text-red-500"],
                 ].map((x) => (
                   <div key={x[0]} className="rounded-lg bg-slate-50 p-4">
                     <p className={`text-2xl font-extrabold ${x[2]}`}>{x[1]}</p>
@@ -89,24 +153,22 @@ export function ImportPlayersPage({ done }: { done: () => void }) {
               </div>
             </div>
             <div className="p-6">
-              <h4 className="text-xs font-extrabold text-slate-800">Row-level errors</h4>
-              <div className="mt-3 space-y-2">
-                {[
-                  ["Row 18", "Ankit Sharma", "Base Price is required"],
-                  ["Row 43", "Dev Patel", "Role “Opener/Bowler” is not valid"],
-                  ["Row 69", "Samar Gupta", "Duplicate phone number"],
-                ].map((e) => (
-                  <div
-                    key={e[0]}
-                    className="grid grid-cols-[70px_1fr_1.5fr] items-center rounded-lg border border-red-100 bg-red-50/50 px-4 py-3 text-[10px]"
-                  >
-                    <b className="text-red-600">{e[0]}</b>
-                    <span className="font-bold text-slate-700">{e[1]}</span>
-                    <span className="text-red-600">{e[2]}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-6 flex justify-between border-t border-slate-100 pt-5">
+              {errorRows.length > 0 && (
+                <div className="mb-5 space-y-2">
+                  <h4 className="text-xs font-extrabold text-slate-800">Row-level errors</h4>
+                  {errorRows.map((e) => (
+                    <div
+                      key={e.rowNum}
+                      className="grid grid-cols-[70px_1fr_1.5fr] items-center rounded-lg border border-red-100 bg-red-50/50 px-4 py-3 text-[10px]"
+                    >
+                      <b className="text-red-600">Row {e.rowNum}</b>
+                      <span className="font-bold text-slate-700">{e.name}</span>
+                      <span className="text-red-600">{e.error}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="flex justify-between border-t border-slate-100 pt-5">
                 <button
                   onClick={() => setStep(1)}
                   className="rounded-lg border border-slate-200 px-4 py-2.5 text-xs font-bold text-slate-600"
@@ -114,10 +176,12 @@ export function ImportPlayersPage({ done }: { done: () => void }) {
                   Upload Another File
                 </button>
                 <button
-                  onClick={done}
-                  className="flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white"
+                  disabled={importing || validRows.length === 0}
+                  onClick={() => void commitImport()}
+                  className="flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white disabled:opacity-45"
                 >
-                  <Icon name="check" size={15} /> Import 71 Valid Records
+                  <Icon name="check" size={15} />
+                  {importing ? "Importing..." : `Import ${validRows.length} Valid Records`}
                 </button>
               </div>
             </div>
