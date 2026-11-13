@@ -89,7 +89,7 @@ export const teams: Team[] = [
 
 export const players: Player[] = [
   {
-    name: "Rohan Verma",
+    name: "Rohan Sharma",
     role: "All-rounder",
     price: "₹5,000",
     status: "Available",
