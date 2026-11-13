@@ -1,6 +1,7 @@
-import { Icon } from "./Icon";
+import { useAuction } from "../context/AuctionContext";
 import { tournamentNav } from "../data/mockData";
 import { IconName, Screen } from "../types/auction";
+import { Icon } from "./Icon";
 
 export function Sidebar({
   activePath,
@@ -9,6 +10,7 @@ export function Sidebar({
   activePath: string;
   onNavigate: (screen: Screen) => void;
 }) {
+  const { activeTournament, teams } = useAuction();
   const workspaceItems: { label: string; icon: IconName; screen: Screen; path: string }[] = [
     { label: "Dashboard", icon: "grid", screen: "dashboard", path: "/" },
     { label: "Tournaments", icon: "trophy", screen: "tournaments", path: "/tournaments" },
@@ -70,10 +72,12 @@ export function Sidebar({
             <Icon name="trophy" size={17} />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[11px] font-extrabold text-emerald-900">Green Meadows PL</p>
+            <p className="truncate text-[11px] font-extrabold text-emerald-900">
+              {activeTournament ? activeTournament.name : "No Tournament"}
+            </p>
             <p className="mt-0.5 flex items-center gap-1.5 text-[9px] font-bold text-emerald-600">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              Auction in progress
+              {activeTournament ? activeTournament.status.toUpperCase() : "Create one"}
             </p>
           </div>
           <Icon name="chevron" size={13} className="text-emerald-500" />
@@ -124,10 +128,11 @@ export function Sidebar({
 
       <div className="m-4 rounded-xl bg-slate-900 p-4 text-white">
         <div className="mb-2 flex items-center gap-2 text-xs font-bold">
-          <span className="h-2 w-2 rounded-full bg-emerald-400" /> GMPL 2027
+          <span className="h-2 w-2 rounded-full bg-emerald-400" />
+          {activeTournament ? activeTournament.season || "Live" : "Setup"}
         </div>
         <p className="text-[11px] leading-relaxed text-slate-400">
-          Auction is live with 4 teams participating.
+          {teams.length} teams configured in active tournament.
         </p>
         <button
           onClick={() => onNavigate("auction")}
@@ -142,8 +147,8 @@ export function Sidebar({
           RM
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-xs font-bold text-slate-800">Rahul Mehta</p>
-          <p className="text-[10px] text-slate-400">Administrator</p>
+          <p className="truncate text-xs font-bold text-slate-800">Organizer</p>
+          <p className="text-[10px] text-slate-400">Connected to Supabase</p>
         </div>
         <Icon name="more" size={17} className="text-slate-400" />
       </div>

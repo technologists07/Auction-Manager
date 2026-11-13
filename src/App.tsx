@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from
 import { Header } from "./components/Header";
 import { Sidebar } from "./components/Sidebar";
 import { TournamentModal } from "./components/TournamentModal";
+import { AuctionProvider } from "./context/AuctionContext";
 import { SCREEN_ROUTES, SCREEN_TITLES } from "./data/mockData";
 import { AuctionRoomPage } from "./pages/AuctionRoomPage";
 import { CommandCenterPage } from "./pages/CommandCenterPage";
@@ -61,8 +62,10 @@ function AppShell() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <AppShell />
-    </BrowserRouter>
+    <AuctionProvider>
+      <BrowserRouter>
+        <AppShell />
+      </BrowserRouter>
+    </AuctionProvider>
   );
 }
