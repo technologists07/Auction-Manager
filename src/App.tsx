@@ -40,7 +40,7 @@ function AppShell() {
     <div className={`${dark ? "dark" : ""} min-h-screen bg-[#f5f7f8] text-slate-900`}>
       <Sidebar activePath={location.pathname} onNavigate={navigate} />
       <div className="ml-[236px] min-w-[1020px]">
-        <Header title={SCREEN_TITLES[currentScreen]} dark={dark} onTheme={() => setDark((v) => !v)} />
+        <Header title={SCREEN_TITLES[currentScreen]} />
         <Routes>
           <Route path="/" element={<DashboardPage openModal={() => setModal(true)} navigate={navigate} />} />
           <Route path="/tournaments" element={<TournamentsPage openModal={() => setModal(true)} navigate={navigate} />} />

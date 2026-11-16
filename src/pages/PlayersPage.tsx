@@ -6,19 +6,14 @@ import { playerImages } from "../data/mockData";
 import { Screen, Team } from "../types/auction";
 
 export function PlayersPage({ navigate }: { navigate: (screen: Screen) => void }) {
-  const { activeTournament, players, teams, createPlayer, createTeam } = useAuction();
+  const { activeTournament, players, teams, createPlayer } = useAuction();
   const [query, setQuery] = useState("");
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const [addOpen, setAddOpen] = useState(false);
-  const [addTeamOpen, setAddTeamOpen] = useState(false);
 
   const [playerName, setPlayerName] = useState("");
   const [playerRole, setPlayerRole] = useState("Batsman");
   const [basePrice, setBasePrice] = useState("3000");
-
-  const [teamName, setTeamName] = useState("");
-  const [teamShort, setTeamShort] = useState("");
-  const [captainName, setCaptainName] = useState("");
 
   const filtered = players.filter(
     (p) =>
@@ -37,31 +32,10 @@ export function PlayersPage({ navigate }: { navigate: (screen: Screen) => void }
     setAddOpen(false);
   };
 
-  const handleSaveTeam = async () => {
-    if (!teamName.trim()) return;
-    await createTeam({
-      name: teamName.trim(),
-      short_name:
-        teamShort.trim() ||
-        teamName
-          .trim()
-          .split(" ")
-          .map((w) => w[0])
-          .join(""),
-      captain_name: captainName.trim() || "TBD",
-      total_purse: Number(activeTournament?.total_purse ?? 100000),
-      color: "#10b981",
-    });
-    setTeamName("");
-    setTeamShort("");
-    setCaptainName("");
-    setAddTeamOpen(false);
-  };
-
   return (
     <main className="p-8">
       <div className="mb-6">
-        <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">Players & Teams</h2>
+        <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">Players &amp; Teams</h2>
         <p className="mt-1 text-sm text-slate-500">
           {activeTournament
             ? `Managing ${activeTournament.name}`
@@ -209,43 +183,12 @@ export function PlayersPage({ navigate }: { navigate: (screen: Screen) => void }
               <p className="mt-1 text-[11px] text-slate-400">{teams.length} teams competing</p>
             </div>
             <button
-              onClick={() => setAddTeamOpen(!addTeamOpen)}
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
+              onClick={() => navigate("team")}
+              className="text-[11px] font-bold text-emerald-600 hover:underline"
             >
-              <Icon name="plus" size={15} />
+              Manage Teams →
             </button>
           </div>
-
-          {addTeamOpen && (
-            <div className="mt-4 space-y-2 rounded-lg bg-slate-50 p-3">
-              <input
-                value={teamName}
-                onChange={(e) => setTeamName(e.target.value)}
-                className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-xs"
-                placeholder="Team name (e.g. Thunder Kings)"
-              />
-              <div className="flex gap-2">
-                <input
-                  value={teamShort}
-                  onChange={(e) => setTeamShort(e.target.value)}
-                  className="w-20 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs uppercase"
-                  placeholder="TK"
-                />
-                <input
-                  value={captainName}
-                  onChange={(e) => setCaptainName(e.target.value)}
-                  className="flex-1 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs"
-                  placeholder="Captain / Owner"
-                />
-              </div>
-              <button
-                onClick={handleSaveTeam}
-                className="w-full rounded-md bg-emerald-600 py-2 text-xs font-bold text-white"
-              >
-                Save Team
-              </button>
-            </div>
-          )}
 
           <div className="mt-4 space-y-3">
             {teams.map((team) => {
