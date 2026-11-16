@@ -62,7 +62,7 @@ export function QueuePage({ start }: { start: () => void }) {
       />
 
       <div className="grid grid-cols-[1.35fr_.65fr] gap-5">
-        <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <section className="overflow-hidden rounded-xl border border-slate-200 bg-white">
           <div className="flex items-center justify-between border-b border-slate-100 p-5">
             <div>
               <h3 className="text-sm font-extrabold text-slate-900">
@@ -131,7 +131,7 @@ export function QueuePage({ start }: { start: () => void }) {
           )}
         </section>
 
-        <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <section className="rounded-xl border border-slate-200 bg-white p-5">
           <h3 className="text-sm font-extrabold text-slate-900">Up Next</h3>
           <p className="mt-1 text-[10px] text-slate-400">Upcoming players preview</p>
           <div className="mt-4 space-y-3">

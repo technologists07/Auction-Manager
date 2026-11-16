@@ -58,7 +58,7 @@ export function ReportsPage() {
           ["Highest Sold", formatINR(highestSold), "trophy", "text-amber-500"],
           ["Average Price", formatINR(avgPrice), "trend", "text-blue-600"],
         ].map(([l, v, ic, c]) => (
-          <div key={l} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div key={l} className="rounded-xl border border-slate-200 bg-white p-4">
             <Icon name={ic as IconName} size={17} className={c} />
             <p className={`mt-4 text-lg font-extrabold ${c}`}>{v}</p>
             <p className="mt-1 text-[9px] font-semibold text-slate-400">{l}</p>

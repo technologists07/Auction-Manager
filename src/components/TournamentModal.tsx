@@ -39,7 +39,7 @@ export function TournamentModal({ onClose }: { onClose: () => void }) {
       onMouseDown={onClose}
     >
       <div
-        className="w-full max-w-[620px] rounded-2xl bg-white shadow-2xl"
+        className="w-full max-w-[620px] rounded-2xl border border-slate-200 bg-white"
         onMouseDown={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between border-b border-slate-100 p-6">
@@ -147,7 +147,7 @@ export function TournamentModal({ onClose }: { onClose: () => void }) {
               </button>
               <button
                 disabled={saving}
-                className="rounded-lg bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-emerald-200 hover:bg-emerald-700 disabled:opacity-50"
+                className="rounded-lg bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white hover:bg-emerald-700 disabled:opacity-50"
               >
                 {saving ? "Saving..." : "Create Tournament"}
               </button>

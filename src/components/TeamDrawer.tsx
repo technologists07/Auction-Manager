@@ -5,7 +5,7 @@ export function TeamDrawer({ team, onClose }: { team: Team; onClose: () => void 
   return (
     <>
       <div onClick={onClose} className="fixed inset-0 z-40 bg-slate-950/20 backdrop-blur-[1px]" />
-      <aside className="fixed inset-y-0 right-0 z-50 w-[410px] overflow-y-auto bg-white shadow-2xl">
+      <aside className="fixed inset-y-0 right-0 z-50 w-[410px] overflow-y-auto bg-white">
         <div className={`bg-gradient-to-br ${team.accent} p-6 text-white`}>
           <div className="flex justify-between">
             <span className="rounded-full bg-white/15 px-3 py-1 text-[9px] font-bold uppercase tracking-wider">
@@ -59,7 +59,7 @@ export function TeamDrawer({ team, onClose }: { team: Team; onClose: () => void 
                 className="flex items-center justify-between rounded-lg bg-slate-50 px-4 py-3"
               >
                 <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-slate-500 shadow-sm">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-slate-500">
                     <Icon name={i === 2 ? "bolt" : "user"} size={15} />
                   </div>
                   <span className="text-xs font-semibold text-slate-600">{role}</span>

@@ -21,14 +21,14 @@ export function TournamentsPage({
         action={
           <button
             onClick={openModal}
-            className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white shadow-lg shadow-emerald-200"
+            className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white-200"
           >
             <Icon name="plus" size={16} /> Create Tournament
           </button>
         }
       />
       {tournaments.length === 0 ? (
-        <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-sm">
+        <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center">
           <p className="text-base font-extrabold text-slate-800">No tournaments yet</p>
           <p className="mt-1 text-xs text-slate-500">
             Create your first tournament to start adding teams and players.
@@ -51,7 +51,7 @@ export function TournamentsPage({
                   setActiveTournamentId(item.id);
                   navigate("command");
                 }}
-                className={`group rounded-xl border bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md ${
+                className={`group rounded-xl border bg-white p-5 text-left transition hover:-translate-y-0.5 hover:border-emerald-300 ${
                   isActive ? "border-emerald-400 ring-2 ring-emerald-100" : "border-slate-200"
                 }`}
               >

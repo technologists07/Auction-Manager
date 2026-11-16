@@ -1,11 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Icon } from "../components/Icon";
-import { PageTitle } from "../components/PageTitle";
 import { SettingsSection } from "../components/SettingsSection";
 import { useAuction } from "../context/AuctionContext";
-import { IconName } from "../types/auction";
-
-const COMMUNITY_NAME_KEY = "auctionpro_community_name";
 
 export function SettingsPage({ dark, onTheme }: { dark: boolean; onTheme: () => void }) {
   const {
@@ -13,6 +8,10 @@ export function SettingsPage({ dark, onTheme }: { dark: boolean; onTheme: () => 
     teams,
     players,
     bids,
+    communityName,
+    setCommunityName,
+    primaryColor,
+    setPrimaryColor,
     updateTournamentRules,
     resetActiveTournament,
     importPlayersBatch,
@@ -20,9 +19,6 @@ export function SettingsPage({ dark, onTheme }: { dark: boolean; onTheme: () => 
 
   const restoreRef = useRef<HTMLInputElement | null>(null);
 
-  const [communityName, setCommunityName] = useState(
-    () => localStorage.getItem(COMMUNITY_NAME_KEY) || "Green Meadows Apartment Sports Club",
-  );
   const [defaultPurse, setDefaultPurse] = useState("100000");
   const [maxSquad, setMaxSquad] = useState("11");
   const [bidIncrement, setBidIncrement] = useState("500");
@@ -43,7 +39,8 @@ export function SettingsPage({ dark, onTheme }: { dark: boolean; onTheme: () => 
     setBusy(true);
     setStatusMsg(null);
     try {
-      localStorage.setItem(COMMUNITY_NAME_KEY, communityName.trim());
+      setCommunityName(communityName.trim() || "Green Meadows Apartment");
+      setPrimaryColor(primaryColor);
       if (activeTournament) {
         await updateTournamentRules({
           total_purse: Number(defaultPurse) || 100000,
@@ -51,7 +48,7 @@ export function SettingsPage({ dark, onTheme }: { dark: boolean; onTheme: () => 
           min_bid_increment: Number(bidIncrement) || 500,
         });
       }
-      setStatusMsg("Settings saved to Supabase!");
+      setStatusMsg("Settings saved!");
     } catch (err) {
       setStatusMsg(err instanceof Error ? err.message : "Failed to save settings");
     } finally {
@@ -136,18 +133,14 @@ export function SettingsPage({ dark, onTheme }: { dark: boolean; onTheme: () => 
 
   return (
     <main className="p-8">
-      <PageTitle
-        eyebrow="Workspace Configuration"
-        title="Settings"
-        description="Manage community branding, active tournament rules and data backups."
-        action={
-          statusMsg ? (
-            <span className="rounded-full bg-emerald-50 px-3 py-2 text-[10px] font-bold text-emerald-700">
-              {statusMsg}
-            </span>
-          ) : null
-        }
-      />
+      <div className="mb-6 flex items-center justify-between">
+        <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">Settings</h2>
+        {statusMsg && (
+          <span className="rounded-full bg-emerald-50 px-3 py-2 text-[10px] font-bold text-emerald-700">
+            {statusMsg}
+          </span>
+        )}
+      </div>
 
       <input
         ref={restoreRef}
@@ -160,182 +153,166 @@ export function SettingsPage({ dark, onTheme }: { dark: boolean; onTheme: () => 
         }}
       />
 
-      <div className="grid grid-cols-[.75fr_1.25fr] gap-5">
-        <nav className="h-fit rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
-          {["Community Settings", "Auction Settings", "Appearance", "Data Management"].map(
-            (x, i) => (
-              <button
-                key={x}
-                className={`flex w-full items-center gap-3 rounded-lg px-3 py-3 text-xs font-bold ${
-                  i === 0 ? "bg-emerald-50 text-emerald-700" : "text-slate-500 hover:bg-slate-50"
-                }`}
-              >
-                <Icon name={["settings", "gavel", "grid", "upload"][i] as IconName} size={16} />
-                {x}
-              </button>
-            ),
-          )}
-        </nav>
-
-        <div className="space-y-5">
-          <SettingsSection
-            title="Community Settings"
-            subtitle="Identity shown across tournaments and projector mode"
-          >
-            <div className="grid grid-cols-[100px_1fr] gap-5">
-              <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-2xl font-black text-white">
-                {initials || "GM"}
-              </div>
-              <div>
+      <div className="max-w-4xl space-y-5">
+        <SettingsSection
+          title="Community Settings"
+          subtitle="Identity shown across tournaments and projector mode"
+        >
+          <div className="grid grid-cols-[96px_1fr] gap-5">
+            <div
+              className="flex h-24 w-24 items-center justify-center rounded-2xl text-2xl font-black text-white"
+              style={{ backgroundColor: primaryColor || "#059669" }}
+            >
+              {initials || "GM"}
+            </div>
+            <div>
+              <label className="field-label">
+                Community Name
+                <input
+                  className="field-input"
+                  value={communityName}
+                  onChange={(e) => setCommunityName(e.target.value)}
+                />
+              </label>
+              <div className="mt-3 grid grid-cols-2 gap-3">
                 <label className="field-label">
-                  Community Name
-                  <input
-                    className="field-input"
-                    value={communityName}
-                    onChange={(e) => setCommunityName(e.target.value)}
-                  />
+                  Active Tournament
+                  <div className="field-input flex items-center text-xs font-bold text-slate-700">
+                    {activeTournament?.name ?? "None selected"}
+                  </div>
                 </label>
-                <div className="mt-3 grid grid-cols-2 gap-3">
-                  <label className="field-label">
-                    Active Tournament
-                    <div className="field-input flex items-center text-xs font-bold text-slate-700">
-                      {activeTournament?.name ?? "None selected"}
-                    </div>
-                  </label>
-                  <label className="field-label">
-                    Primary Color
-                    <div className="field-input flex items-center gap-2">
-                      <i className="h-4 w-4 rounded-full bg-emerald-600" /> #059669
-                    </div>
-                  </label>
-                </div>
+                <label className="field-label">
+                  Primary Color
+                  <div className="field-input flex items-center gap-3">
+                    <input
+                      type="color"
+                      value={primaryColor}
+                      onChange={(e) => setPrimaryColor(e.target.value)}
+                      className="h-6 w-8 cursor-pointer rounded border-0 bg-transparent p-0"
+                    />
+                    <span className="font-mono text-xs uppercase text-slate-700">
+                      {primaryColor}
+                    </span>
+                  </div>
+                </label>
               </div>
             </div>
-          </SettingsSection>
+          </div>
+        </SettingsSection>
 
-          <SettingsSection
-            title="Auction Settings"
-            subtitle="Rules for the active tournament in Supabase"
-          >
-            <div className="grid grid-cols-3 gap-4">
-              <label className="field-label">
-                Team Purse (₹)
-                <input
-                  type="number"
-                  className="field-input"
-                  value={defaultPurse}
-                  onChange={(e) => setDefaultPurse(e.target.value)}
-                />
-              </label>
-              <label className="field-label">
-                Max Squad Size
-                <input
-                  type="number"
-                  className="field-input"
-                  value={maxSquad}
-                  onChange={(e) => setMaxSquad(e.target.value)}
-                />
-              </label>
-              <label className="field-label">
-                Bid Increment (₹)
-                <input
-                  type="number"
-                  className="field-input"
-                  value={bidIncrement}
-                  onChange={(e) => setBidIncrement(e.target.value)}
-                />
-              </label>
-            </div>
-          </SettingsSection>
+        <SettingsSection
+          title="Auction Settings"
+          subtitle="Rules for the active tournament in Supabase"
+        >
+          <div className="grid grid-cols-3 gap-4">
+            <label className="field-label">
+              Team Purse (₹)
+              <input
+                type="number"
+                className="field-input"
+                value={defaultPurse}
+                onChange={(e) => setDefaultPurse(e.target.value)}
+              />
+            </label>
+            <label className="field-label">
+              Max Squad Size
+              <input
+                type="number"
+                className="field-input"
+                value={maxSquad}
+                onChange={(e) => setMaxSquad(e.target.value)}
+              />
+            </label>
+            <label className="field-label">
+              Bid Increment (₹)
+              <input
+                type="number"
+                className="field-input"
+                value={bidIncrement}
+                onChange={(e) => setBidIncrement(e.target.value)}
+              />
+            </label>
+          </div>
+        </SettingsSection>
 
-          <SettingsSection title="Theme" subtitle="Light and dark design system states">
-            <div className="grid grid-cols-2 gap-4">
+        <SettingsSection title="Theme" subtitle="Choose light or dark appearance">
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => dark && onTheme()}
+              className={`rounded-lg border px-5 py-2.5 text-xs font-bold transition ${
+                !dark
+                  ? "border-emerald-600 bg-emerald-50 text-emerald-700"
+                  : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+              }`}
+            >
+              Light Mode
+            </button>
+            <button
+              type="button"
+              onClick={() => !dark && onTheme()}
+              className={`rounded-lg border px-5 py-2.5 text-xs font-bold transition ${
+                dark
+                  ? "border-emerald-600 bg-emerald-50 text-emerald-700"
+                  : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+              }`}
+            >
+              Dark Mode
+            </button>
+          </div>
+        </SettingsSection>
+
+        <SettingsSection
+          title="Data Management"
+          subtitle="Export JSON backup, restore players, or reset the active auction"
+        >
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={handleBackupData}
+              className="rounded-lg border border-slate-200 px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50"
+            >
+              Backup Data (JSON)
+            </button>
+            <button
+              onClick={() => restoreRef.current?.click()}
+              className="rounded-lg border border-slate-200 px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50"
+            >
+              Restore Backup
+            </button>
+
+            {!confirmReset ? (
               <button
-                onClick={() => dark && onTheme()}
-                className={`rounded-xl border p-3 text-left ${
-                  !dark ? "border-emerald-500 ring-2 ring-emerald-100" : "border-slate-200"
-                }`}
+                onClick={() => setConfirmReset(true)}
+                className="ml-auto rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-xs font-bold text-red-600 hover:bg-red-100"
               >
-                <div className="rounded-lg bg-[#f5f7f8] p-3">
-                  <div className="h-3 rounded bg-white shadow-sm" />
-                  <div className="mt-2 grid grid-cols-3 gap-2">
-                    <i className="h-8 rounded bg-white" />
-                    <i className="h-8 rounded bg-white" />
-                    <i className="h-8 rounded bg-emerald-500" />
-                  </div>
-                </div>
-                <p className="mt-2 text-[10px] font-bold text-slate-700">Light Mode</p>
+                Reset Tournament
               </button>
-
-              <button
-                onClick={() => !dark && onTheme()}
-                className={`rounded-xl border p-3 text-left ${
-                  dark ? "border-emerald-500 ring-2 ring-emerald-100" : "border-slate-200"
-                }`}
-              >
-                <div className="rounded-lg bg-slate-950 p-3">
-                  <div className="h-3 rounded bg-slate-800" />
-                  <div className="mt-2 grid grid-cols-3 gap-2">
-                    <i className="h-8 rounded bg-slate-800" />
-                    <i className="h-8 rounded bg-slate-800" />
-                    <i className="h-8 rounded bg-emerald-500" />
-                  </div>
-                </div>
-                <p className="mt-2 text-[10px] font-bold text-slate-700">Dark Mode</p>
-              </button>
-            </div>
-          </SettingsSection>
-
-          <SettingsSection
-            title="Data Management"
-            subtitle="Export JSON backup, restore players, or reset the active auction"
-          >
-            <div className="flex flex-wrap items-center gap-3">
-              <button
-                onClick={handleBackupData}
-                className="rounded-lg border border-slate-200 px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50"
-              >
-                Backup Data (JSON)
-              </button>
-              <button
-                onClick={() => restoreRef.current?.click()}
-                className="rounded-lg border border-slate-200 px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50"
-              >
-                Restore Backup
-              </button>
-
-              {!confirmReset ? (
+            ) : (
+              <div className="ml-auto flex items-center gap-2">
+                <span className="text-[11px] font-bold text-red-600">Are you sure?</span>
                 <button
-                  onClick={() => setConfirmReset(true)}
-                  className="ml-auto rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-xs font-bold text-red-600 hover:bg-red-100"
+                  disabled={busy}
+                  onClick={() => void handleResetTournament()}
+                  className="rounded-lg bg-red-600 px-3 py-2 text-xs font-bold text-white hover:bg-red-700"
                 >
-                  Reset Tournament
+                  Yes, Reset All
                 </button>
-              ) : (
-                <div className="ml-auto flex items-center gap-2">
-                  <span className="text-[11px] font-bold text-red-600">Are you sure?</span>
-                  <button
-                    disabled={busy}
-                    onClick={() => void handleResetTournament()}
-                    className="rounded-lg bg-red-600 px-3 py-2 text-xs font-bold text-white hover:bg-red-700"
-                  >
-                    Yes, Reset All
-                  </button>
-                  <button
-                    onClick={() => setConfirmReset(false)}
-                    className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              )}
-            </div>
-          </SettingsSection>
+                <button
+                  onClick={() => setConfirmReset(false)}
+                  className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+          </div>
+        </SettingsSection>
 
+        <div className="flex justify-end">
           <button
             disabled={busy}
             onClick={() => void handleSaveSettings()}
-            className="float-right rounded-lg bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-emerald-200 hover:bg-emerald-700 disabled:opacity-50"
+            className="rounded-lg bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white hover:bg-emerald-700 disabled:opacity-50"
           >
             {busy ? "Saving..." : "Save Changes"}
           </button>

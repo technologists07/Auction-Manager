@@ -94,9 +94,9 @@ export function ImportPlayersPage({ done }: { done: () => void }) {
         />
 
         {step === 1 ? (
-          <section className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+          <section className="rounded-2xl border border-slate-200 bg-white p-8">
             <div className="rounded-xl border-2 border-dashed border-emerald-200 bg-emerald-50/40 px-8 py-16 text-center">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-emerald-600 shadow-sm">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-emerald-600">
                 <Icon name="upload" size={25} />
               </div>
               <h3 className="mt-5 text-lg font-extrabold text-slate-900">
@@ -107,7 +107,7 @@ export function ImportPlayersPage({ done }: { done: () => void }) {
               </p>
               <button
                 onClick={() => fileRef.current?.click()}
-                className="mt-6 rounded-lg bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-emerald-200"
+                className="mt-6 rounded-lg bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white-200"
               >
                 Browse Excel / CSV File
               </button>
@@ -128,7 +128,7 @@ export function ImportPlayersPage({ done }: { done: () => void }) {
             </div>
           </section>
         ) : (
-          <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
             <div className="border-b border-slate-100 p-6">
               <div className="flex items-center justify-between">
                 <div>

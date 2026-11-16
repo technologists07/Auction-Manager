@@ -88,7 +88,7 @@ export function TeamDetailPage() {
         />
 
         <section
-          className="rounded-xl p-6 text-white shadow-lg"
+          className="rounded-xl p-6 text-white"
           style={{ backgroundColor: selectedTeam.color || "#0f172a" }}
         >
           <div className="flex items-center gap-5">
@@ -123,7 +123,7 @@ export function TeamDetailPage() {
             ["Total Spend", formatINR(totalSpend)],
             ["Players Purchased", `${bought.length} / ${maxSquad}`],
           ].map(([l, v], i) => (
-            <div key={l} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div key={l} className="rounded-xl border border-slate-200 bg-white p-5">
               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{l}</p>
               <p
                 className={`mt-2 text-2xl font-extrabold ${
@@ -137,7 +137,7 @@ export function TeamDetailPage() {
         </div>
 
         <div className="mt-5 grid grid-cols-[.7fr_1.3fr] gap-5">
-          <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <section className="rounded-xl border border-slate-200 bg-white p-5">
             <h3 className="text-sm font-extrabold text-slate-900">Role Distribution</h3>
             <p className="mt-1 text-[10px] text-slate-400">Current squad balance</p>
             <div className="mt-5 space-y-4">
@@ -158,7 +158,7 @@ export function TeamDetailPage() {
             </div>
           </section>
 
-          <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+          <section className="overflow-hidden rounded-xl border border-slate-200 bg-white">
             <div className="p-5">
               <h3 className="text-sm font-extrabold text-slate-900">Purchased Players</h3>
               <p className="mt-1 text-[10px] text-slate-400">Players secured during the auction</p>
@@ -211,7 +211,7 @@ export function TeamDetailPage() {
         action={
           <button
             onClick={() => setAddOpen((v) => !v)}
-            className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white shadow-lg shadow-emerald-200 hover:bg-emerald-700"
+            className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white-200 hover:bg-emerald-700"
           >
             <Icon name="plus" size={16} /> Add Team
           </button>
@@ -221,7 +221,7 @@ export function TeamDetailPage() {
       {addOpen && (
         <form
           onSubmit={handleSaveTeam}
-          className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50/60 p-5 shadow-sm"
+          className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50/60 p-5"
         >
           <div className="mb-3 flex items-center justify-between">
             <h3 className="text-sm font-extrabold text-slate-900">Add New Team</h3>
@@ -288,7 +288,7 @@ export function TeamDetailPage() {
       )}
 
       {teams.length === 0 ? (
-        <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-sm">
+        <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center">
           <p className="text-base font-extrabold text-slate-800">No teams in this tournament yet</p>
           <p className="mt-1 text-xs text-slate-500">
             Click "+ Add Team" above to create your first competing team.
@@ -308,11 +308,11 @@ export function TeamDetailPage() {
               <button
                 key={team.id}
                 onClick={() => setSelectedTeamId(team.id)}
-                className="group rounded-xl border border-slate-200 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md"
+                className="group rounded-xl border border-slate-200 bg-white p-5 text-left transition hover:-translate-y-0.5 hover:border-emerald-300"
               >
                 <div className="flex items-center gap-4">
                   <div
-                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-sm font-black text-white shadow-sm"
+                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-sm font-black text-white"
                     style={{ backgroundColor: team.color || "#10b981" }}
                   >
                     {team.short_name || team.name.slice(0, 2).toUpperCase()}

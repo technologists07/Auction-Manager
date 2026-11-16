@@ -60,7 +60,7 @@ export function DashboardPage({
           )}
           <button
             onClick={openModal}
-            className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white shadow-lg shadow-emerald-200 transition hover:bg-emerald-700"
+            className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white-200 transition hover:bg-emerald-700"
           >
             <Icon name="plus" size={17} /> Create Tournament
           </button>
@@ -97,7 +97,7 @@ export function DashboardPage({
         />
         <div
           onClick={() => navigate("auction")}
-          className="cursor-pointer rounded-xl bg-gradient-to-br from-emerald-600 to-teal-600 p-5 text-white shadow-lg shadow-emerald-200 transition hover:-translate-y-0.5"
+          className="cursor-pointer rounded-xl bg-gradient-to-br from-emerald-600 to-teal-600 p-5 text-white-200 transition hover:-translate-y-0.5"
         >
           <div className="flex items-start justify-between">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/15">
@@ -117,7 +117,7 @@ export function DashboardPage({
         </div>
       </div>
 
-      <section className="mt-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <section className="mt-6 rounded-xl border border-slate-200 bg-white p-5">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[.15em] text-emerald-600">
@@ -147,7 +147,7 @@ export function DashboardPage({
               onClick={action as () => void}
               className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3 text-left text-xs font-bold text-slate-700 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700"
             >
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-emerald-600 shadow-sm">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-emerald-600">
                 <Icon name={icon as IconName} size={16} />
               </span>
               {label as string}
@@ -157,7 +157,7 @@ export function DashboardPage({
       </section>
 
       <div className="mt-6 grid grid-cols-[1.7fr_1fr] gap-5">
-        <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <section className="overflow-hidden rounded-xl border border-slate-200 bg-white">
           <div className="flex items-center justify-between border-b border-slate-100 p-5">
             <div>
               <h3 className="text-sm font-extrabold text-slate-900">Your Tournaments</h3>
@@ -232,7 +232,7 @@ export function DashboardPage({
           )}
         </section>
 
-        <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <section className="rounded-xl border border-slate-200 bg-white p-5">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-sm font-extrabold text-slate-900">Auction Overview</h3>

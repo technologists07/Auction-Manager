@@ -38,6 +38,10 @@ interface AuctionContextValue {
   bids: DbBid[];
   loading: boolean;
   error: string | null;
+  communityName: string;
+  setCommunityName: (name: string) => void;
+  primaryColor: string;
+  setPrimaryColor: (color: string) => void;
   setActiveTournamentId: (id: string) => void;
   refreshAll: () => Promise<void>;
   createTournament: (input: CreateTournamentInput) => Promise<DbTournament>;
@@ -58,6 +62,8 @@ interface AuctionContextValue {
 
 const AuctionContext = createContext<AuctionContextValue | null>(null);
 const STORAGE_KEY = "auctionpro_active_tournament_id";
+const COMMUNITY_NAME_KEY = "auctionpro_community_name";
+const PRIMARY_COLOR_KEY = "auctionpro_primary_color";
 
 export function formatINR(amount: number | null | undefined): string {
   const val = Number(amount ?? 0);
@@ -69,11 +75,27 @@ export function AuctionProvider({ children }: { children: React.ReactNode }) {
   const [activeTournamentId, setActiveIdState] = useState<string | null>(() =>
     localStorage.getItem(STORAGE_KEY),
   );
+  const [communityName, setCommunityNameState] = useState<string>(
+    () => localStorage.getItem(COMMUNITY_NAME_KEY) || "Green Meadows Apartment",
+  );
+  const [primaryColor, setPrimaryColorState] = useState<string>(
+    () => localStorage.getItem(PRIMARY_COLOR_KEY) || "#059669",
+  );
   const [teams, setTeams] = useState<DbTeam[]>([]);
   const [players, setPlayers] = useState<DbPlayer[]>([]);
   const [bids, setBids] = useState<DbBid[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const setCommunityName = (name: string) => {
+    setCommunityNameState(name);
+    localStorage.setItem(COMMUNITY_NAME_KEY, name);
+  };
+
+  const setPrimaryColor = (color: string) => {
+    setPrimaryColorState(color);
+    localStorage.setItem(PRIMARY_COLOR_KEY, color);
+  };
 
   const setActiveTournamentId = (id: string) => {
     localStorage.setItem(STORAGE_KEY, id);
@@ -597,6 +619,10 @@ export function AuctionProvider({ children }: { children: React.ReactNode }) {
         bids,
         loading,
         error,
+        communityName,
+        setCommunityName,
+        primaryColor,
+        setPrimaryColor,
         setActiveTournamentId,
         refreshAll,
         createTournament,

@@ -77,7 +77,7 @@ export function ProjectorModePage({ exit }: { exit: () => void }) {
         {outcomePlayer && !livePlayer ? (
           <main className="flex flex-1 items-center justify-center py-10">
             <div
-              className={`w-full max-w-3xl rounded-3xl border p-12 text-center shadow-2xl ${
+              className={`w-full max-w-3xl rounded-3xl border p-12 text-center ${
                 outcomePlayer.status === "sold"
                   ? "border-emerald-400/40 bg-emerald-500/10"
                   : "border-red-400/40 bg-red-500/10"
@@ -122,7 +122,7 @@ export function ProjectorModePage({ exit }: { exit: () => void }) {
           </main>
         ) : (
           <main className="grid flex-1 grid-cols-[.8fr_1.2fr] items-center gap-14 py-10">
-            <div className="relative mx-auto w-full max-w-md overflow-hidden rounded-3xl border border-white/10 bg-slate-900 shadow-2xl">
+            <div className="relative mx-auto w-full max-w-md overflow-hidden rounded-3xl border border-white/10 bg-slate-900">
               {livePlayer ? (
                 <>
                   <img

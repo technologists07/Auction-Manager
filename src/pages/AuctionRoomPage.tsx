@@ -66,7 +66,7 @@ export function AuctionRoomPage({ projector }: { projector: () => void }) {
 
   return (
     <main className="min-h-[calc(100vh-76px)] bg-[#f3f6f8] p-5">
-      <div className="mb-4 flex items-center justify-between rounded-xl border border-slate-200 bg-white px-5 py-3 shadow-sm">
+      <div className="mb-4 flex items-center justify-between rounded-xl border border-slate-200 bg-white px-5 py-3">
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-2 rounded-full bg-red-50 px-3 py-1.5 text-[10px] font-black tracking-wider text-red-600">
             <span className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
@@ -117,7 +117,7 @@ export function AuctionRoomPage({ projector }: { projector: () => void }) {
       )}
 
       <div className="grid grid-cols-[.75fr_1.4fr_.85fr] gap-4">
-        <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <section className="overflow-hidden rounded-xl border border-slate-200 bg-white">
           <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3">
             <h3 className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
               Current Player
@@ -152,7 +152,7 @@ export function AuctionRoomPage({ projector }: { projector: () => void }) {
                       {formatINR(livePlayer.base_price)}
                     </p>
                   </div>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-emerald-600 shadow-sm">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-emerald-600">
                     <Icon name="wallet" size={18} />
                   </div>
                 </div>
@@ -190,7 +190,7 @@ export function AuctionRoomPage({ projector }: { projector: () => void }) {
         </section>
 
         <section className="space-y-4">
-          <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+          <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
             <div className="bg-slate-900 px-6 py-5 text-center text-white">
               <div className="flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-[.2em] text-emerald-400">
                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
@@ -305,7 +305,7 @@ export function AuctionRoomPage({ projector }: { projector: () => void }) {
             </div>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="rounded-xl border border-slate-200 bg-white p-5">
             <div className="mb-3 flex items-center justify-between">
               <h3 className="text-xs font-extrabold text-slate-800">Bid History</h3>
               <span className="text-[9px] font-semibold text-slate-400">Current lot</span>
@@ -339,7 +339,7 @@ export function AuctionRoomPage({ projector }: { projector: () => void }) {
             )}
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="rounded-xl border border-slate-200 bg-white p-4">
             <p className="mb-3 text-[9px] font-black uppercase tracking-wider text-slate-400">
               Auction Controls
             </p>
@@ -384,7 +384,7 @@ export function AuctionRoomPage({ projector }: { projector: () => void }) {
           </div>
         </section>
 
-        <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <section className="overflow-hidden rounded-xl border border-slate-200 bg-white">
           <div className="border-b border-slate-100 p-5">
             <h3 className="text-sm font-extrabold text-slate-900">Live Team Tracker</h3>
             <p className="mt-1 text-[10px] text-slate-400">Purse and squad status</p>

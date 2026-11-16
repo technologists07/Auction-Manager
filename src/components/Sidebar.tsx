@@ -10,7 +10,7 @@ export function Sidebar({
   activePath: string;
   onNavigate: (screen: Screen) => void;
 }) {
-  const { activeTournament, teams } = useAuction();
+  const { activeTournament, teams, primaryColor } = useAuction();
   const workspaceItems: { label: string; icon: IconName; screen: Screen; path: string }[] = [
     { label: "Dashboard", icon: "grid", screen: "dashboard", path: "/" },
     { label: "Tournaments", icon: "trophy", screen: "tournaments", path: "/tournaments" },
@@ -19,12 +19,15 @@ export function Sidebar({
   return (
     <aside className="fixed inset-y-0 left-0 z-30 flex w-[236px] flex-col border-r border-slate-200 bg-white">
       <div className="flex h-[76px] items-center gap-3 border-b border-slate-100 px-6">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-lg shadow-emerald-200">
+        <div
+          className="flex h-10 w-10 items-center justify-center rounded-xl text-white"
+          style={{ backgroundColor: primaryColor || "#059669" }}
+        >
           <Icon name="bat" size={21} />
         </div>
         <div>
           <div className="text-[15px] font-extrabold tracking-tight text-slate-900">
-            Auction<span className="text-emerald-600">Pro</span>
+            Auction<span style={{ color: primaryColor || "#059669" }}>Pro</span>
           </div>
           <div className="text-[10px] font-semibold uppercase tracking-[.16em] text-slate-400">
             Sports Manager
@@ -140,17 +143,6 @@ export function Sidebar({
         >
           Enter room <Icon name="arrow" size={13} />
         </button>
-      </div>
-
-      <div className="flex items-center gap-3 border-t border-slate-100 p-4">
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 text-xs font-extrabold text-emerald-700">
-          RM
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-xs font-bold text-slate-800">Organizer</p>
-          <p className="text-[10px] text-slate-400">Connected to Supabase</p>
-        </div>
-        <Icon name="more" size={17} className="text-slate-400" />
       </div>
     </aside>
   );

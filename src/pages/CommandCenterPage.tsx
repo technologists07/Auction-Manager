@@ -39,7 +39,7 @@ export function CommandCenterPage({ navigate }: { navigate: (screen: Screen) => 
         }
       />
 
-      <section className="overflow-hidden rounded-xl bg-gradient-to-r from-slate-900 to-slate-800 p-6 text-white shadow-lg">
+      <section className="overflow-hidden rounded-xl bg-gradient-to-r from-slate-900 to-slate-800 p-6 text-white">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[.16em] text-emerald-400">
@@ -79,7 +79,7 @@ export function CommandCenterPage({ navigate }: { navigate: (screen: Screen) => 
           ],
           ["Remaining Purse", formatINR(totalRemainingPurse), "wallet", "bg-cyan-50 text-cyan-600"],
         ].map(([label, value, icon, tone]) => (
-          <div key={label} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div key={label} className="rounded-xl border border-slate-200 bg-white p-4">
             <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${tone}`}>
               <Icon name={icon as IconName} size={17} />
             </div>
@@ -90,7 +90,7 @@ export function CommandCenterPage({ navigate }: { navigate: (screen: Screen) => 
       </div>
 
       <div className="mt-5 grid grid-cols-[1fr_1.25fr] gap-5">
-        <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <section className="rounded-xl border border-slate-200 bg-white p-5">
           <h3 className="text-sm font-extrabold text-slate-900">Quick Actions</h3>
           <p className="mt-1 text-[10px] text-slate-400">Tournament-specific operations</p>
           <div className="mt-4 grid grid-cols-2 gap-3">
@@ -109,7 +109,7 @@ export function CommandCenterPage({ navigate }: { navigate: (screen: Screen) => 
           </div>
         </section>
 
-        <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <section className="rounded-xl border border-slate-200 bg-white p-5">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-sm font-extrabold text-slate-900">Recent Auction Activity</h3>

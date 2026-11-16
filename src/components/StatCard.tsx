@@ -15,7 +15,7 @@ export function StatCard({
   tone: string;
 }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+    <div className="rounded-xl border border-slate-200 bg-white p-5 transition hover:-translate-y-0.5">
       <div className="flex items-start justify-between">
         <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${tone}`}>
           <Icon name={icon} size={19} />
