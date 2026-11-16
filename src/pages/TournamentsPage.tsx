@@ -1,5 +1,4 @@
 import { Icon } from "../components/Icon";
-import { PageTitle } from "../components/PageTitle";
 import { formatINR, useAuction } from "../context/AuctionContext";
 import { Screen } from "../types/auction";
 
@@ -14,19 +13,15 @@ export function TournamentsPage({
 
   return (
     <main className="p-8">
-      <PageTitle
-        eyebrow="Tournament Management"
-        title="Tournaments"
-        description="Select a tournament to manage its players, teams, queue and live auction."
-        action={
-          <button
-            onClick={openModal}
-            className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white-200"
-          >
-            <Icon name="plus" size={16} /> Create Tournament
-          </button>
-        }
-      />
+      <div className="mb-6 flex justify-end">
+        <button
+          onClick={openModal}
+          className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white"
+        >
+          <Icon name="plus" size={16} /> Create Tournament
+        </button>
+      </div>
+
       {tournaments.length === 0 ? (
         <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center">
           <p className="text-base font-extrabold text-slate-800">No tournaments yet</p>

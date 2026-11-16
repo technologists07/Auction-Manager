@@ -15,7 +15,7 @@ export const SCREEN_ROUTES: Record<Screen, string> = {
 };
 
 export const SCREEN_TITLES: Record<Screen, string> = {
-  dashboard: "Dashboard",
+  dashboard: "",
   tournaments: "Tournament Management",
   command: "Tournament Command Center",
   players: "Player Management",
@@ -24,7 +24,7 @@ export const SCREEN_TITLES: Record<Screen, string> = {
   queue: "Auction Queue",
   auction: "Live Auction Control Room",
   projector: "Projector Mode",
-  reports: "Tournament Reports",
+  reports: "",
   settings: "Settings",
 };
 

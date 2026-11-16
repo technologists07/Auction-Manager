@@ -280,8 +280,6 @@ export function TeamDetailPage() {
     <main className="p-8">
       <PageTitle
         eyebrow={activeTournament?.name ?? "Team Management"}
-        title="Teams"
-        description="View all competing teams or click a team card to inspect its roster and spending."
         action={
           <button
             onClick={() => setAddOpen((v) => !v)}

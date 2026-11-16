@@ -20,7 +20,9 @@ export function Header({
           <p className="text-[11px] font-semibold uppercase text-slate-400">
             {communityName || "GREEN MEADOWS APARTMENT"}
           </p>
-          <h1 className="text-lg font-extrabold tracking-tight text-slate-900">{title}</h1>
+          {title && (
+            <h1 className="text-lg font-extrabold tracking-tight text-slate-900">{title}</h1>
+          )}
         </div>
       </div>
     </header>

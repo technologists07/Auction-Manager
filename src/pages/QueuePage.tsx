@@ -48,7 +48,7 @@ export function QueuePage({ start }: { start: () => void }) {
   return (
     <main className="p-8">
       <div className="mb-5 flex items-center justify-between">
-        <p className="text-[10px] font-bold uppercase tracking-[.16em] text-emerald-600">
+        <p className="text-sm font-extrabold uppercase tracking-[.12em] text-emerald-600">
           {activeTournament?.name ?? "Auction Queue"}
         </p>
         <button

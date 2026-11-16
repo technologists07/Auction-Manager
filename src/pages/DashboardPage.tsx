@@ -39,22 +39,25 @@ export function DashboardPage({
 
   return (
     <main className="p-8">
-      <div className="mb-6 flex items-center justify-end gap-2">
-        {tournaments.length === 0 && !loading && (
+      <div className="mb-6 flex items-center justify-between">
+        <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">Dashboard</h2>
+        <div className="flex gap-2">
+          {tournaments.length === 0 && !loading && (
+            <button
+              onClick={handleSeed}
+              disabled={seeding}
+              className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-xs font-bold text-emerald-700 hover:bg-emerald-100"
+            >
+              {seeding ? "Loading Demo..." : "Load Demo Tournament"}
+            </button>
+          )}
           <button
-            onClick={handleSeed}
-            disabled={seeding}
-            className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-xs font-bold text-emerald-700 hover:bg-emerald-100"
+            onClick={openModal}
+            className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-emerald-700"
           >
-            {seeding ? "Loading Demo..." : "Load Demo Tournament"}
+            <Icon name="plus" size={17} /> Create Tournament
           </button>
-        )}
-        <button
-          onClick={openModal}
-          className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-emerald-700"
-        >
-          <Icon name="plus" size={17} /> Create Tournament
-        </button>
+        </div>
       </div>
 
       {error && (

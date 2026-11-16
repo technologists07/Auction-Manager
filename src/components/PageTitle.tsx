@@ -1,13 +1,13 @@
 import React from "react";
 
 export function PageTitle({
-  eyebrow = "Green Meadows Premier League 2027",
+  eyebrow = "",
   title,
   description,
   action,
 }: {
   eyebrow?: string;
-  title: string;
+  title?: string;
   description?: string;
   action?: React.ReactNode;
 }) {
@@ -15,11 +15,13 @@ export function PageTitle({
     <div className="mb-6 flex items-end justify-between">
       <div>
         {eyebrow && (
-          <p className="text-[10px] font-bold uppercase tracking-[.16em] text-emerald-600">
+          <p className="text-sm font-extrabold uppercase tracking-[.12em] text-emerald-600">
             {eyebrow}
           </p>
         )}
-        <h2 className="mt-1 text-2xl font-extrabold tracking-tight text-slate-900">{title}</h2>
+        {title && (
+          <h2 className="mt-1 text-2xl font-extrabold tracking-tight text-slate-900">{title}</h2>
+        )}
         {description && <p className="mt-1 text-sm text-slate-500">{description}</p>}
       </div>
       {action}

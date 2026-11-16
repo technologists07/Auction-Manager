@@ -20,9 +20,17 @@ import { Screen } from "./types/auction";
 
 function AppShell() {
   const [modal, setModal] = useState(false);
-  const [dark, setDark] = useState(false);
+  const [dark, setDark] = useState(() => localStorage.getItem("auctionpro_theme") !== "light");
   const routerNavigate = useNavigate();
   const location = useLocation();
+
+  const toggleTheme = () => {
+    setDark((prev) => {
+      const next = !prev;
+      localStorage.setItem("auctionpro_theme", next ? "dark" : "light");
+      return next;
+    });
+  };
 
   const navigate = (screen: Screen) => {
     routerNavigate(SCREEN_ROUTES[screen]);
@@ -51,7 +59,7 @@ function AppShell() {
           <Route path="/queue" element={<QueuePage start={() => navigate("auction")} />} />
           <Route path="/auction" element={<AuctionRoomPage projector={() => navigate("projector")} />} />
           <Route path="/reports" element={<ReportsPage />} />
-          <Route path="/settings" element={<SettingsPage dark={dark} onTheme={() => setDark((v) => !v)} />} />
+          <Route path="/settings" element={<SettingsPage dark={dark} onTheme={toggleTheme} />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
