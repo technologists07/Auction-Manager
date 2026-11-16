@@ -10,6 +10,12 @@ interface CreateTournamentInput {
   min_bid_increment: number;
 }
 
+interface UpdateTournamentRulesInput {
+  total_purse: number;
+  max_squad_size: number;
+  min_bid_increment: number;
+}
+
 interface CreateTeamInput {
   name: string;
   short_name: string;
@@ -35,6 +41,8 @@ interface AuctionContextValue {
   setActiveTournamentId: (id: string) => void;
   refreshAll: () => Promise<void>;
   createTournament: (input: CreateTournamentInput) => Promise<DbTournament>;
+  updateTournamentRules: (input: UpdateTournamentRulesInput) => Promise<void>;
+  resetActiveTournament: () => Promise<void>;
   createTeam: (input: CreateTeamInput) => Promise<void>;
   createPlayer: (input: CreatePlayerInput) => Promise<void>;
   importPlayersBatch: (rows: CreatePlayerInput[]) => Promise<void>;
@@ -214,6 +222,52 @@ export function AuctionProvider({ children }: { children: React.ReactNode }) {
     return created;
   };
 
+  const updateTournamentRules = async (input: UpdateTournamentRulesInput) => {
+    if (!activeTournament) throw new Error("No active tournament to update.");
+    const { error: err } = await supabase
+      .from("tournaments")
+      .update({
+        total_purse: input.total_purse,
+        max_squad_size: input.max_squad_size,
+        min_bid_increment: input.min_bid_increment,
+      })
+      .eq("id", activeTournament.id);
+    if (err) throw new Error(err.message);
+    await fetchTournaments();
+  };
+
+  const resetActiveTournament = async () => {
+    if (!activeTournament) throw new Error("No active tournament to reset.");
+    const tid = activeTournament.id;
+
+    await supabase.from("bids").delete().eq("tournament_id", tid);
+    await supabase
+      .from("players")
+      .update({ status: "queued", team_id: null, sold_price: null })
+      .eq("tournament_id", tid);
+
+    await Promise.all(
+      teams.map((t) =>
+        supabase
+          .from("teams")
+          .update({ remaining_purse: Number(t.total_purse) })
+          .eq("id", t.id),
+      ),
+    );
+
+    await supabase
+      .from("tournaments")
+      .update({
+        status: "draft",
+        current_player_id: null,
+        current_bid: 0,
+        highest_bidder_team_id: null,
+      })
+      .eq("id", tid);
+
+    await Promise.all([fetchTournaments(), fetchTournamentData(tid)]);
+  };
+
   const createTeam = async (input: CreateTeamInput) => {
     if (!activeTournamentId) throw new Error("Select or create a tournament first.");
     const { error: err } = await supabase.from("teams").insert({
@@ -309,7 +363,9 @@ export function AuctionProvider({ children }: { children: React.ReactNode }) {
       throw new Error(`Bid must be higher than ${formatINR(currentBid)}.`);
     }
     if (currentBid === 0 && amount < Number(livePlayer.base_price)) {
-      throw new Error(`Opening bid cannot be less than base price ${formatINR(livePlayer.base_price)}.`);
+      throw new Error(
+        `Opening bid cannot be less than base price ${formatINR(livePlayer.base_price)}.`,
+      );
     }
     if (amount > Number(team.remaining_purse)) {
       throw new Error(`${team.name} only has ${formatINR(team.remaining_purse)} remaining.`);
@@ -544,6 +600,8 @@ export function AuctionProvider({ children }: { children: React.ReactNode }) {
         setActiveTournamentId,
         refreshAll,
         createTournament,
+        updateTournamentRules,
+        resetActiveTournament,
         createTeam,
         createPlayer,
         importPlayersBatch,
