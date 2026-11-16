@@ -48,6 +48,7 @@ interface AuctionContextValue {
   updateTournamentRules: (input: UpdateTournamentRulesInput) => Promise<void>;
   resetActiveTournament: () => Promise<void>;
   createTeam: (input: CreateTeamInput) => Promise<void>;
+  updateTeamPurse: (teamId: string, newTotalPurse: number) => Promise<void>;
   createPlayer: (input: CreatePlayerInput) => Promise<void>;
   importPlayersBatch: (rows: CreatePlayerInput[]) => Promise<void>;
   saveQueueOrder: (orderedPlayerIds: string[]) => Promise<void>;
@@ -302,6 +303,24 @@ export function AuctionProvider({ children }: { children: React.ReactNode }) {
       remaining_purse: input.total_purse,
       color: input.color || "#10b981",
     });
+    if (err) throw new Error(err.message);
+    await fetchTournamentData(activeTournamentId);
+  };
+
+  const updateTeamPurse = async (teamId: string, newTotalPurse: number) => {
+    if (!activeTournamentId) throw new Error("No active tournament.");
+    const team = teams.find((t) => t.id === teamId);
+    if (!team) throw new Error("Team not found.");
+    const spent = Math.max(0, Number(team.total_purse) - Number(team.remaining_purse));
+    const newRemaining = Math.max(0, newTotalPurse - spent);
+
+    const { error: err } = await supabase
+      .from("teams")
+      .update({
+        total_purse: newTotalPurse,
+        remaining_purse: newRemaining,
+      })
+      .eq("id", teamId);
     if (err) throw new Error(err.message);
     await fetchTournamentData(activeTournamentId);
   };
@@ -643,6 +662,7 @@ export function AuctionProvider({ children }: { children: React.ReactNode }) {
         updateTournamentRules,
         resetActiveTournament,
         createTeam,
+        updateTeamPurse,
         createPlayer,
         importPlayersBatch,
         saveQueueOrder,

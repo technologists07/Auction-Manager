@@ -1,20 +1,31 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Icon } from "../components/Icon";
 import { PageTitle } from "../components/PageTitle";
 import { formatINR, useAuction } from "../context/AuctionContext";
 import { playerImages } from "../data/mockData";
 
 export function TeamDetailPage() {
-  const { activeTournament, teams, players, createTeam } = useAuction();
+  const { activeTournament, teams, players, createTeam, updateTeamPurse } = useAuction();
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
 
   const [teamName, setTeamName] = useState("");
   const [teamShort, setTeamShort] = useState("");
   const [captainName, setCaptainName] = useState("");
+  const [initialPurseInput, setInitialPurseInput] = useState(
+    String(activeTournament?.total_purse ?? 100000),
+  );
   const [teamColor, setTeamColor] = useState("#10b981");
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+
+  const [editingPurse, setEditingPurse] = useState(false);
+  const [purseDraft, setPurseDraft] = useState("");
+  const [purseSaving, setPurseSaving] = useState(false);
+
+  useEffect(() => {
+    setInitialPurseInput(String(activeTournament?.total_purse ?? 100000));
+  }, [activeTournament?.total_purse]);
 
   const maxSquad = activeTournament?.max_squad_size ?? 11;
   const selectedTeam = selectedTeamId ? teams.find((t) => t.id === selectedTeamId) ?? null : null;
@@ -35,18 +46,32 @@ export function TeamDetailPage() {
             .map((w) => w[0])
             .join(""),
         captain_name: captainName.trim() || "TBD",
-        total_purse: Number(activeTournament?.total_purse ?? 100000),
+        total_purse: Number(initialPurseInput) || Number(activeTournament?.total_purse ?? 100000),
         color: teamColor,
       });
       setTeamName("");
       setTeamShort("");
       setCaptainName("");
+      setInitialPurseInput(String(activeTournament?.total_purse ?? 100000));
       setTeamColor("#10b981");
       setAddOpen(false);
     } catch (error) {
       setErr(error instanceof Error ? error.message : "Failed to create team");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleUpdatePurse = async () => {
+    if (!selectedTeam) return;
+    const parsed = Number(purseDraft);
+    if (Number.isNaN(parsed) || parsed < 0) return;
+    setPurseSaving(true);
+    try {
+      await updateTeamPurse(selectedTeam.id, parsed);
+      setEditingPurse(false);
+    } finally {
+      setPurseSaving(false);
     }
   };
 
@@ -79,7 +104,10 @@ export function TeamDetailPage() {
           description={`Squad, spending and role composition for ${selectedTeam.name}.`}
           action={
             <button
-              onClick={() => setSelectedTeamId(null)}
+              onClick={() => {
+                setEditingPurse(false);
+                setSelectedTeamId(null);
+              }}
               className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"
             >
               ← All Teams
@@ -117,17 +145,63 @@ export function TeamDetailPage() {
         </section>
 
         <div className="mt-5 grid grid-cols-4 gap-4">
+          <div className="rounded-xl border border-slate-200 bg-white p-5">
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                Initial Purse
+              </p>
+              {!editingPurse && (
+                <button
+                  onClick={() => {
+                    setPurseDraft(String(totalPurse));
+                    setEditingPurse(true);
+                  }}
+                  className="text-[10px] font-bold text-emerald-600 hover:underline"
+                >
+                  Edit
+                </button>
+              )}
+            </div>
+            {editingPurse ? (
+              <div className="mt-2 flex items-center gap-1.5">
+                <input
+                  type="number"
+                  min="0"
+                  value={purseDraft}
+                  onChange={(e) => setPurseDraft(e.target.value)}
+                  className="w-full rounded-md border border-slate-200 px-2 py-1 text-sm font-bold text-slate-900"
+                />
+                <button
+                  disabled={purseSaving}
+                  onClick={() => void handleUpdatePurse()}
+                  className="rounded-md bg-emerald-600 px-2.5 py-1.5 text-[10px] font-bold text-white"
+                >
+                  Save
+                </button>
+                <button
+                  onClick={() => setEditingPurse(false)}
+                  className="rounded-md border border-slate-200 px-2 py-1.5 text-[10px] font-bold text-slate-500"
+                >
+                  ✕
+                </button>
+              </div>
+            ) : (
+              <p className="mt-2 text-2xl font-extrabold text-slate-900">
+                {formatINR(totalPurse)}
+              </p>
+            )}
+          </div>
+
           {[
-            ["Initial Purse", formatINR(totalPurse)],
-            ["Remaining Purse", formatINR(remainingPurse)],
-            ["Total Spend", formatINR(totalSpend)],
-            ["Players Purchased", `${bought.length} / ${maxSquad}`],
-          ].map(([l, v], i) => (
-            <div key={l} className="rounded-xl border border-slate-200 bg-white p-5">
+            ["Remaining Purse", formatINR(remainingPurse), true],
+            ["Total Spend", formatINR(totalSpend), false],
+            ["Players Purchased", `${bought.length} / ${maxSquad}`, false],
+          ].map(([l, v, highlight]) => (
+            <div key={l as string} className="rounded-xl border border-slate-200 bg-white p-5">
               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{l}</p>
               <p
                 className={`mt-2 text-2xl font-extrabold ${
-                  i === 1 ? "text-emerald-600" : "text-slate-900"
+                  highlight ? "text-emerald-600" : "text-slate-900"
                 }`}
               >
                 {v}
@@ -211,7 +285,7 @@ export function TeamDetailPage() {
         action={
           <button
             onClick={() => setAddOpen((v) => !v)}
-            className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white-200 hover:bg-emerald-700"
+            className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-emerald-700"
           >
             <Icon name="plus" size={16} /> Add Team
           </button>
@@ -238,7 +312,7 @@ export function TeamDetailPage() {
               {err}
             </div>
           )}
-          <div className="grid grid-cols-[1.5fr_.6fr_1.2fr_.6fr_auto] items-end gap-3">
+          <div className="grid grid-cols-[1.4fr_.55fr_1.1fr_.9fr_.5fr_auto] items-end gap-3">
             <label className="field-label">
               Team Name
               <input
@@ -266,6 +340,16 @@ export function TeamDetailPage() {
                 onChange={(e) => setCaptainName(e.target.value)}
                 className="field-input bg-white"
                 placeholder="e.g. Arjun Mehta"
+              />
+            </label>
+            <label className="field-label">
+              Initial Purse (₹)
+              <input
+                type="number"
+                min="0"
+                value={initialPurseInput}
+                onChange={(e) => setInitialPurseInput(e.target.value)}
+                className="field-input bg-white"
               />
             </label>
             <label className="field-label">

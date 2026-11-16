@@ -48,9 +48,6 @@ export function TournamentModal({ onClose }: { onClose: () => void }) {
               <Icon name="trophy" />
             </div>
             <h2 className="text-xl font-extrabold text-slate-900">Create Tournament</h2>
-            <p className="mt-1 text-xs text-slate-500">
-              Saves directly to your Supabase database.
-            </p>
           </div>
           <button onClick={onClose} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100">
             <Icon name="close" />

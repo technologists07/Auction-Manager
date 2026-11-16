@@ -39,32 +39,22 @@ export function DashboardPage({
 
   return (
     <main className="p-8">
-      <div className="mb-7 flex items-end justify-between">
-        <div>
-          <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">
-            Community Sports Auction Manager
-          </h2>
-          <p className="mt-1 text-sm text-slate-500">
-            Run fair, fast and engaging cricket auctions for your community.
-          </p>
-        </div>
-        <div className="flex gap-2">
-          {tournaments.length === 0 && !loading && (
-            <button
-              onClick={handleSeed}
-              disabled={seeding}
-              className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-xs font-bold text-emerald-700 hover:bg-emerald-100"
-            >
-              {seeding ? "Loading Demo..." : "Load Demo Tournament"}
-            </button>
-          )}
+      <div className="mb-6 flex items-center justify-end gap-2">
+        {tournaments.length === 0 && !loading && (
           <button
-            onClick={openModal}
-            className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white-200 transition hover:bg-emerald-700"
+            onClick={handleSeed}
+            disabled={seeding}
+            className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-xs font-bold text-emerald-700 hover:bg-emerald-100"
           >
-            <Icon name="plus" size={17} /> Create Tournament
+            {seeding ? "Loading Demo..." : "Load Demo Tournament"}
           </button>
-        </div>
+        )}
+        <button
+          onClick={openModal}
+          className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-emerald-700"
+        >
+          <Icon name="plus" size={17} /> Create Tournament
+        </button>
       </div>
 
       {error && (
@@ -97,7 +87,7 @@ export function DashboardPage({
         />
         <div
           onClick={() => navigate("auction")}
-          className="cursor-pointer rounded-xl bg-gradient-to-br from-emerald-600 to-teal-600 p-5 text-white-200 transition hover:-translate-y-0.5"
+          className="cursor-pointer rounded-xl bg-gradient-to-br from-emerald-600 to-teal-600 p-5 text-white transition hover:-translate-y-0.5"
         >
           <div className="flex items-start justify-between">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/15">
@@ -139,7 +129,7 @@ export function DashboardPage({
           {[
             ["Create Tournament", "trophy", () => openModal()],
             ["Import Players", "upload", () => navigate("import")],
-            ["Manage Teams", "shield", () => navigate("players")],
+            ["Manage Teams", "shield", () => navigate("team")],
             ["Start Auction", "gavel", () => navigate("auction")],
           ].map(([label, icon, action]) => (
             <button
@@ -175,7 +165,7 @@ export function DashboardPage({
 
           {tournaments.length === 0 ? (
             <div className="p-10 text-center">
-              <p className="text-sm font-bold text-slate-700">No tournaments in Supabase yet</p>
+              <p className="text-sm font-bold text-slate-700">No tournaments yet</p>
               <p className="mt-1 text-xs text-slate-400">
                 Click "Create Tournament" or "Load Demo Tournament" above to get started.
               </p>
