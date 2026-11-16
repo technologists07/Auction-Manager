@@ -6,7 +6,7 @@ import { playerImages } from "../data/mockData";
 import { DbPlayer } from "../types/auction";
 
 export function QueuePage({ start }: { start: () => void }) {
-  const { players, saveQueueOrder } = useAuction();
+  const { activeTournament, players, saveQueueOrder } = useAuction();
   const [queue, setQueue] = useState<DbPlayer[]>([]);
   const [dragging, setDragging] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
@@ -49,8 +49,8 @@ export function QueuePage({ start }: { start: () => void }) {
   return (
     <main className="p-8">
       <PageTitle
+        eyebrow={activeTournament?.name ?? "Auction Queue"}
         title="Auction Queue"
-        description="Arrange the player order for the live auction (saved automatically to Supabase)."
         action={
           <button
             onClick={start}
@@ -135,22 +135,34 @@ export function QueuePage({ start }: { start: () => void }) {
           <h3 className="text-sm font-extrabold text-slate-900">Up Next</h3>
           <p className="mt-1 text-[10px] text-slate-400">Upcoming players preview</p>
           <div className="mt-4 space-y-3">
-            {queue.slice(0, 4).map((p, i) => (
-              <div
-                key={p.id}
-                className={`flex items-center gap-3 rounded-xl p-3 ${
-                  i === 0 ? "bg-emerald-50 ring-1 ring-emerald-200" : "bg-slate-50"
-                }`}
-              >
-                <span className="text-[10px] font-black text-slate-400">#{i + 1}</span>
-                <div>
-                  <p className="text-[11px] font-bold text-slate-800">{p.name}</p>
-                  <p className="text-[9px] text-slate-400">
-                    {p.role} • {formatINR(p.base_price)}
-                  </p>
+            {queue.length === 0 ? (
+              <p className="text-xs text-slate-400">No upcoming players.</p>
+            ) : (
+              queue.slice(0, 4).map((p, i) => (
+                <div
+                  key={p.id}
+                  className={`flex items-center gap-3 rounded-xl border p-3 ${
+                    i === 0
+                      ? "border-emerald-300 bg-white"
+                      : "border-slate-100 bg-slate-50"
+                  }`}
+                >
+                  <span
+                    className={`text-[10px] font-black ${
+                      i === 0 ? "text-emerald-600" : "text-slate-400"
+                    }`}
+                  >
+                    #{i + 1}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-xs font-bold text-slate-900">{p.name}</p>
+                    <p className="text-[10px] text-slate-500">
+                      {p.role} • {formatINR(p.base_price)}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
           <div className="mt-5 rounded-lg bg-slate-900 p-4 text-white">
             <p className="text-[9px] uppercase tracking-wider text-slate-400">Queue status</p>

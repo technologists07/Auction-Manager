@@ -10,7 +10,7 @@ export function Sidebar({
   activePath: string;
   onNavigate: (screen: Screen) => void;
 }) {
-  const { activeTournament, teams, primaryColor } = useAuction();
+  const { activeTournament, primaryColor } = useAuction();
   const workspaceItems: { label: string; icon: IconName; screen: Screen; path: string }[] = [
     { label: "Dashboard", icon: "grid", screen: "dashboard", path: "/" },
     { label: "Tournaments", icon: "trophy", screen: "tournaments", path: "/tournaments" },
@@ -128,22 +128,6 @@ export function Sidebar({
           Settings
         </button>
       </nav>
-
-      <div className="m-4 rounded-xl bg-slate-900 p-4 text-white">
-        <div className="mb-2 flex items-center gap-2 text-xs font-bold">
-          <span className="h-2 w-2 rounded-full bg-emerald-400" />
-          {activeTournament ? activeTournament.season || "Live" : "Setup"}
-        </div>
-        <p className="text-[11px] leading-relaxed text-slate-400">
-          {teams.length} teams configured in active tournament.
-        </p>
-        <button
-          onClick={() => onNavigate("auction")}
-          className="mt-3 flex items-center gap-1.5 text-[11px] font-bold text-emerald-400"
-        >
-          Enter room <Icon name="arrow" size={13} />
-        </button>
-      </div>
     </aside>
   );
 }

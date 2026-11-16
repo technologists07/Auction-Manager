@@ -62,6 +62,7 @@ interface AuctionContextValue {
 
 const AuctionContext = createContext<AuctionContextValue | null>(null);
 const STORAGE_KEY = "auctionpro_active_tournament_id";
+const LAST_FINISHED_KEY = "auctionpro_last_finished_player";
 const COMMUNITY_NAME_KEY = "auctionpro_community_name";
 const PRIMARY_COLOR_KEY = "auctionpro_primary_color";
 
@@ -443,6 +444,8 @@ export function AuctionProvider({ children }: { children: React.ReactNode }) {
       })
       .eq("id", livePlayer.id);
 
+    localStorage.setItem(`${LAST_FINISHED_KEY}_${activeTournament.id}`, livePlayer.id);
+
     await supabase
       .from("tournaments")
       .update({
@@ -466,6 +469,8 @@ export function AuctionProvider({ children }: { children: React.ReactNode }) {
       .from("players")
       .update({ status: "unsold", team_id: null, sold_price: null })
       .eq("id", livePlayer.id);
+
+    localStorage.setItem(`${LAST_FINISHED_KEY}_${activeTournament.id}`, livePlayer.id);
 
     await supabase
       .from("tournaments")
@@ -511,9 +516,18 @@ export function AuctionProvider({ children }: { children: React.ReactNode }) {
       throw new Error(`Finish ${alreadyLive.name} before reopening another player.`);
     }
 
-    const lastFinished = [...players]
-      .reverse()
-      .find((p) => p.status === "sold" || p.status === "unsold");
+    const trackedId = localStorage.getItem(`${LAST_FINISHED_KEY}_${activeTournament.id}`);
+    const trackedPlayer = trackedId
+      ? players.find((p) => p.id === trackedId && (p.status === "sold" || p.status === "unsold"))
+      : undefined;
+    const latestBidPlayerId = bids.find((b) => {
+      const p = players.find((pl) => pl.id === b.player_id);
+      return p && (p.status === "sold" || p.status === "unsold");
+    })?.player_id;
+    const lastFinished =
+      trackedPlayer ??
+      (latestBidPlayerId ? players.find((p) => p.id === latestBidPlayerId) : undefined) ??
+      [...players].reverse().find((p) => p.status === "sold" || p.status === "unsold");
     if (!lastFinished) throw new Error("No sold or unsold player to reopen.");
 
     if (lastFinished.status === "sold" && lastFinished.team_id && lastFinished.sold_price) {

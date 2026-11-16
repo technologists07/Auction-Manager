@@ -9,7 +9,7 @@ export function CommandCenterPage({ navigate }: { navigate: (screen: Screen) => 
 
   const actions: [string, IconName, Screen][] = [
     ["Import Players", "upload", "import"],
-    ["Manage Teams", "shield", "players"],
+    ["Manage Teams", "shield", "team"],
     ["Configure Queue", "list", "queue"],
     ["Start Auction", "gavel", "auction"],
   ];
@@ -30,7 +30,6 @@ export function CommandCenterPage({ navigate }: { navigate: (screen: Screen) => 
       <PageTitle
         eyebrow={activeTournament?.name ?? "No Active Tournament"}
         title="Tournament Command Center"
-        description="Everything you need to prepare, run and monitor this community auction."
         action={
           <span className="flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-2 text-[10px] font-bold text-emerald-700">
             <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />{" "}
@@ -42,15 +41,11 @@ export function CommandCenterPage({ navigate }: { navigate: (screen: Screen) => 
       <section className="overflow-hidden rounded-xl bg-gradient-to-r from-slate-900 to-slate-800 p-6 text-white">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[.16em] text-emerald-400">
-              Cricket • Season {activeTournament?.season || "2027"}
-            </p>
-            <h3 className="mt-2 text-2xl font-black">
+            <h3 className="text-2xl font-black">
               {activeTournament?.name ?? "Select or create a tournament"}
             </h3>
             <p className="mt-2 text-xs text-slate-400">
-              {teams.length} teams • {players.length} registered players • Min increment{" "}
-              {formatINR(activeTournament?.min_bid_increment ?? 500)}
+              {teams.length} teams • {players.length} registered players
             </p>
           </div>
           <div className="text-right">

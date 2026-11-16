@@ -38,6 +38,7 @@ export function ReportsPage() {
   return (
     <main className="p-8">
       <PageTitle
+        eyebrow={activeTournament?.name ?? "Reports"}
         title="Auction Reports"
         description={`Live summary for ${activeTournament?.name ?? "Active Tournament"}`}
         action={
