@@ -5,7 +5,7 @@ import { playerImages } from "../data/mockData";
 import { Screen } from "../types/auction";
 
 export function PlayersPage({ navigate }: { navigate: (screen: Screen) => void }) {
-  const { activeTournament, players, createPlayer } = useAuction();
+  const { players, createPlayer } = useAuction();
   const [query, setQuery] = useState("");
   const [addOpen, setAddOpen] = useState(false);
 
@@ -32,15 +32,6 @@ export function PlayersPage({ navigate }: { navigate: (screen: Screen) => void }
 
   return (
     <main className="p-8">
-      <div className="mb-6">
-        <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">Players</h2>
-        <p className="mt-1 text-sm text-slate-500">
-          {activeTournament
-            ? `Managing ${activeTournament.name}`
-            : "Create or select a tournament first."}
-        </p>
-      </div>
-
       <section className="overflow-hidden rounded-xl border border-slate-200 bg-white">
         <div className="border-b border-slate-100 p-5">
           <div className="flex items-center justify-between">

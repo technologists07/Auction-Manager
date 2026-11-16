@@ -19,6 +19,8 @@ export function SettingsPage({ dark, onTheme }: { dark: boolean; onTheme: () => 
 
   const restoreRef = useRef<HTMLInputElement | null>(null);
 
+  const [draftCommunityName, setDraftCommunityName] = useState(communityName);
+  const [draftPrimaryColor, setDraftPrimaryColor] = useState(primaryColor);
   const [defaultPurse, setDefaultPurse] = useState("100000");
   const [maxSquad, setMaxSquad] = useState("11");
   const [bidIncrement, setBidIncrement] = useState("500");
@@ -26,6 +28,14 @@ export function SettingsPage({ dark, onTheme }: { dark: boolean; onTheme: () => 
   const [busy, setBusy] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    setDraftCommunityName(communityName);
+  }, [communityName]);
+
+  useEffect(() => {
+    setDraftPrimaryColor(primaryColor);
+  }, [primaryColor]);
 
   useEffect(() => {
     if (activeTournament) {
@@ -39,8 +49,8 @@ export function SettingsPage({ dark, onTheme }: { dark: boolean; onTheme: () => 
     setBusy(true);
     setStatusMsg(null);
     try {
-      setCommunityName(communityName.trim() || "Green Meadows Apartment");
-      setPrimaryColor(primaryColor);
+      setCommunityName(draftCommunityName.trim() || "Green Meadows Apartment");
+      setPrimaryColor(draftPrimaryColor);
       if (activeTournament) {
         await updateTournamentRules({
           total_purse: Number(defaultPurse) || 100000,
@@ -59,7 +69,7 @@ export function SettingsPage({ dark, onTheme }: { dark: boolean; onTheme: () => 
   const handleBackupData = () => {
     const payload = {
       exportedAt: new Date().toISOString(),
-      communityName,
+      communityName: draftCommunityName,
       tournament: activeTournament,
       teams,
       players,
@@ -124,7 +134,7 @@ export function SettingsPage({ dark, onTheme }: { dark: boolean; onTheme: () => 
     }
   };
 
-  const initials = communityName
+  const initials = draftCommunityName
     .split(" ")
     .filter(Boolean)
     .slice(0, 2)
@@ -161,7 +171,7 @@ export function SettingsPage({ dark, onTheme }: { dark: boolean; onTheme: () => 
           <div className="grid grid-cols-[96px_1fr] gap-5">
             <div
               className="flex h-24 w-24 items-center justify-center rounded-2xl text-2xl font-black text-white"
-              style={{ backgroundColor: primaryColor || "#059669" }}
+              style={{ backgroundColor: draftPrimaryColor || "#059669" }}
             >
               {initials || "GM"}
             </div>
@@ -170,8 +180,8 @@ export function SettingsPage({ dark, onTheme }: { dark: boolean; onTheme: () => 
                 Community Name
                 <input
                   className="field-input"
-                  value={communityName}
-                  onChange={(e) => setCommunityName(e.target.value)}
+                  value={draftCommunityName}
+                  onChange={(e) => setDraftCommunityName(e.target.value)}
                 />
               </label>
               <div className="mt-3 grid grid-cols-2 gap-3">
@@ -186,12 +196,12 @@ export function SettingsPage({ dark, onTheme }: { dark: boolean; onTheme: () => 
                   <div className="field-input flex items-center gap-3">
                     <input
                       type="color"
-                      value={primaryColor}
-                      onChange={(e) => setPrimaryColor(e.target.value)}
+                      value={draftPrimaryColor}
+                      onChange={(e) => setDraftPrimaryColor(e.target.value)}
                       className="h-6 w-8 cursor-pointer rounded border-0 bg-transparent p-0"
                     />
                     <span className="font-mono text-xs uppercase text-slate-700">
-                      {primaryColor}
+                      {draftPrimaryColor}
                     </span>
                   </div>
                 </label>

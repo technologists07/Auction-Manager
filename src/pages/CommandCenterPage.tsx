@@ -1,5 +1,4 @@
 import { Icon } from "../components/Icon";
-import { PageTitle } from "../components/PageTitle";
 import { formatINR, useAuction } from "../context/AuctionContext";
 import { playerImages } from "../data/mockData";
 import { IconName, Screen } from "../types/auction";
@@ -27,17 +26,6 @@ export function CommandCenterPage({ navigate }: { navigate: (screen: Screen) => 
 
   return (
     <main className="p-8">
-      <PageTitle
-        eyebrow={activeTournament?.name ?? "No Active Tournament"}
-        title="Tournament Command Center"
-        action={
-          <span className="flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-2 text-[10px] font-bold text-emerald-700">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />{" "}
-            {activeTournament ? activeTournament.status.toUpperCase() : "SETUP"}
-          </span>
-        }
-      />
-
       <section className="overflow-hidden rounded-xl bg-gradient-to-r from-slate-900 to-slate-800 p-6 text-white">
         <div className="flex items-center justify-between">
           <div>

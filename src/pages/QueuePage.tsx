@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Icon } from "../components/Icon";
-import { PageTitle } from "../components/PageTitle";
 import { formatINR, useAuction } from "../context/AuctionContext";
 import { playerImages } from "../data/mockData";
 import { DbPlayer } from "../types/auction";
@@ -48,18 +47,17 @@ export function QueuePage({ start }: { start: () => void }) {
 
   return (
     <main className="p-8">
-      <PageTitle
-        eyebrow={activeTournament?.name ?? "Auction Queue"}
-        title="Auction Queue"
-        action={
-          <button
-            onClick={start}
-            className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white"
-          >
-            <Icon name="play" size={15} /> Open Auction Room
-          </button>
-        }
-      />
+      <div className="mb-5 flex items-center justify-between">
+        <p className="text-[10px] font-bold uppercase tracking-[.16em] text-emerald-600">
+          {activeTournament?.name ?? "Auction Queue"}
+        </p>
+        <button
+          onClick={start}
+          className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white"
+        >
+          <Icon name="play" size={15} /> Open Auction Room
+        </button>
+      </div>
 
       <div className="grid grid-cols-[1.35fr_.65fr] gap-5">
         <section className="overflow-hidden rounded-xl border border-slate-200 bg-white">
