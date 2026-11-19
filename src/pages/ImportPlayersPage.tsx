@@ -13,7 +13,7 @@ interface ParsedRow {
 }
 
 export function ImportPlayersPage({ done }: { done: () => void }) {
-  const { importPlayersBatch } = useAuction();
+  const { activeTournament, importPlayersBatch } = useAuction();
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [step, setStep] = useState<1 | 2>(1);
   const [fileName, setFileName] = useState("");
@@ -24,14 +24,38 @@ export function ImportPlayersPage({ done }: { done: () => void }) {
   const errorRows = rows.filter((r) => Boolean(r.error));
 
   const downloadTemplate = () => {
-    const ws = XLSX.utils.json_to_sheet([
-      { name: "Virat Sharma", role: "Batsman", base_price: 5000 },
-      { name: "Rahul Nair", role: "All-rounder", base_price: 4000 },
-      { name: "Vikram Patel", role: "Fast Bowler", base_price: 3500 },
-    ]);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Players");
-    XLSX.writeFile(wb, "players_template.xlsx");
+
+    const playersSheet = XLSX.utils.aoa_to_sheet([
+      ["Name", "Role", "Base Price"],
+      ["Rohan Verma", "All-rounder", 5000],
+      ["Karan Malhotra", "Batsman", 4000],
+      ["Aditya Rao", "Fast Bowler", 3500],
+    ]);
+    playersSheet["!cols"] = [{ wch: 24 }, { wch: 18 }, { wch: 14 }];
+    XLSX.utils.book_append_sheet(wb, playersSheet, "Players");
+
+    const guideSheet = XLSX.utils.aoa_to_sheet([
+      ["Column", "Required", "Notes"],
+      ["Name", "Yes", "Full name of the player"],
+      ["Role", "No", "Batsman, Fast Bowler, Spin Bowler, All-rounder, or Wicket-keeper"],
+      ["Base Price", "Yes", "Numeric amount without currency symbol (e.g. 3000)"],
+    ]);
+    guideSheet["!cols"] = [{ wch: 16 }, { wch: 12 }, { wch: 60 }];
+    XLSX.utils.book_append_sheet(wb, guideSheet, "Instructions");
+
+    const wbOut = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+    const blob = new Blob([wbOut], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "players_template.xlsx";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const handleFile = async (file: File) => {
@@ -40,7 +64,11 @@ export function ImportPlayersPage({ done }: { done: () => void }) {
     const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
     const rawRows = XLSX.utils.sheet_to_json<Record<string, unknown>>(firstSheet, { defval: "" });
 
-    const parsed: ParsedRow[] = rawRows.map((record, i) => {
+    const nonEmptyRows = rawRows.filter((record) =>
+      Object.values(record).some((val) => String(val ?? "").trim() !== ""),
+    );
+
+    const parsed: ParsedRow[] = nonEmptyRows.map((record, i) => {
       const entries = Object.entries(record).map(([k, v]) => [k.trim().toLowerCase(), v] as const);
       const findVal = (keywords: string[]) =>
         entries.find(([k]) => keywords.some((kw) => k.includes(kw)))?.[1];
@@ -78,8 +106,9 @@ export function ImportPlayersPage({ done }: { done: () => void }) {
   return (
     <main className="p-8">
       <PageTitle
+        eyebrow={activeTournament?.name ?? "Player Import"}
         title="Import Players"
-        description="Upload an Excel (.xlsx, .xls) or .csv file to validate and import players into Supabase."
+        description="Upload an Excel (.xlsx, .xls) or .csv file to validate and import players."
       />
       <div className="mx-auto max-w-4xl">
         <input
@@ -90,24 +119,33 @@ export function ImportPlayersPage({ done }: { done: () => void }) {
           onChange={(e) => {
             const f = e.target.files?.[0];
             if (f) void handleFile(f);
+            e.target.value = "";
           }}
         />
 
         {step === 1 ? (
           <section className="rounded-2xl border border-slate-200 bg-white p-8">
-            <div className="rounded-xl border-2 border-dashed border-emerald-200 bg-emerald-50/40 px-8 py-16 text-center">
+            <div
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                const f = e.dataTransfer.files?.[0];
+                if (f) void handleFile(f);
+              }}
+              className="rounded-xl border-2 border-dashed border-emerald-200 bg-emerald-50/40 px-8 py-16 text-center"
+            >
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-emerald-600">
                 <Icon name="upload" size={25} />
               </div>
               <h3 className="mt-5 text-lg font-extrabold text-slate-900">
-                Upload your Excel or CSV file
+                Drop or upload your Excel / CSV file
               </h3>
               <p className="mt-2 text-xs text-slate-500">
-                Supports .xlsx, .xls, and .csv with columns: name, role, base_price
+                Supports .xlsx, .xls, and .csv with columns: Name, Role, Base Price
               </p>
               <button
                 onClick={() => fileRef.current?.click()}
-                className="mt-6 rounded-lg bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white-200"
+                className="mt-6 rounded-lg bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white hover:bg-emerald-700"
               >
                 Browse Excel / CSV File
               </button>
@@ -116,12 +154,12 @@ export function ImportPlayersPage({ done }: { done: () => void }) {
               <div>
                 <p className="text-xs font-bold text-slate-700">Need the correct format?</p>
                 <p className="mt-1 text-[10px] text-slate-400">
-                  Download our Excel (.xlsx) template with the required columns.
+                  Download our Excel (.xlsx) template with formatted columns and instructions.
                 </p>
               </div>
               <button
                 onClick={downloadTemplate}
-                className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-[10px] font-bold text-slate-600"
+                className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-[10px] font-bold text-slate-600 hover:bg-slate-50"
               >
                 <Icon name="upload" size={14} className="rotate-180" /> Download Template
               </button>
