@@ -3,9 +3,18 @@ import { Icon } from "../components/Icon";
 import { PageTitle } from "../components/PageTitle";
 import { formatINR, useAuction } from "../context/AuctionContext";
 import { playerImages } from "../data/mockData";
+import { DbTeam } from "../types/auction";
 
 export function TeamDetailPage() {
-  const { activeTournament, teams, players, createTeam, updateTeamPurse } = useAuction();
+  const {
+    activeTournament,
+    teams,
+    players,
+    createTeam,
+    updateTeam,
+    deleteTeam,
+    updateTeamPurse,
+  } = useAuction();
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
 
@@ -18,6 +27,14 @@ export function TeamDetailPage() {
   const [teamColor, setTeamColor] = useState("#10b981");
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+
+  const [editingTeamId, setEditingTeamId] = useState<string | null>(null);
+  const [editTeamName, setEditTeamName] = useState("");
+  const [editTeamShort, setEditTeamShort] = useState("");
+  const [editCaptain, setEditCaptain] = useState("");
+  const [editPurse, setEditPurse] = useState("");
+  const [editColor, setEditColor] = useState("#10b981");
+  const [confirmDeleteTeamId, setConfirmDeleteTeamId] = useState<string | null>(null);
 
   const [editingPurse, setEditingPurse] = useState(false);
   const [purseDraft, setPurseDraft] = useState("");
@@ -57,6 +74,48 @@ export function TeamDetailPage() {
       setAddOpen(false);
     } catch (error) {
       setErr(error instanceof Error ? error.message : "Failed to create team");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const startEditTeam = (team: DbTeam) => {
+    setEditingTeamId(team.id);
+    setEditTeamName(team.name);
+    setEditTeamShort(team.short_name || team.name.slice(0, 2).toUpperCase());
+    setEditCaptain(team.captain_name || "");
+    setEditPurse(String(team.total_purse));
+    setEditColor(team.color || "#10b981");
+    setConfirmDeleteTeamId(null);
+  };
+
+  const handleUpdateTeam = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTeamId || !editTeamName.trim()) return;
+    setSaving(true);
+    setErr(null);
+    try {
+      await updateTeam(editingTeamId, {
+        name: editTeamName.trim(),
+        short_name: editTeamShort.trim() || editTeamName.trim().slice(0, 2),
+        captain_name: editCaptain.trim() || "TBD",
+        total_purse: Number(editPurse) || 100000,
+        color: editColor,
+      });
+      setEditingTeamId(null);
+    } catch (error) {
+      setErr(error instanceof Error ? error.message : "Failed to update team");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteTeam = async (teamId: string) => {
+    setSaving(true);
+    try {
+      await deleteTeam(teamId);
+      setConfirmDeleteTeamId(null);
+      if (selectedTeamId === teamId) setSelectedTeamId(null);
     } finally {
       setSaving(false);
     }
@@ -369,6 +428,77 @@ export function TeamDetailPage() {
         </form>
       )}
 
+      {editingTeamId && (
+        <form
+          onSubmit={handleUpdateTeam}
+          className="mb-6 rounded-xl border border-blue-200 bg-blue-50/50 p-5"
+        >
+          <div className="mb-3 flex items-center justify-between">
+            <h3 className="text-sm font-extrabold text-slate-900">Edit Team</h3>
+            <button
+              type="button"
+              onClick={() => setEditingTeamId(null)}
+              className="text-xs font-bold text-slate-500 hover:text-slate-700"
+            >
+              Cancel
+            </button>
+          </div>
+          <div className="grid grid-cols-[1.4fr_.55fr_1.1fr_.9fr_.5fr_auto] items-end gap-3">
+            <label className="field-label">
+              Team Name
+              <input
+                required
+                value={editTeamName}
+                onChange={(e) => setEditTeamName(e.target.value)}
+                className="field-input bg-white"
+              />
+            </label>
+            <label className="field-label">
+              Short Code
+              <input
+                value={editTeamShort}
+                onChange={(e) => setEditTeamShort(e.target.value)}
+                className="field-input bg-white uppercase"
+                maxLength={4}
+              />
+            </label>
+            <label className="field-label">
+              Owner / Captain
+              <input
+                value={editCaptain}
+                onChange={(e) => setEditCaptain(e.target.value)}
+                className="field-input bg-white"
+              />
+            </label>
+            <label className="field-label">
+              Initial Purse (₹)
+              <input
+                type="number"
+                min="0"
+                value={editPurse}
+                onChange={(e) => setEditPurse(e.target.value)}
+                className="field-input bg-white"
+              />
+            </label>
+            <label className="field-label">
+              Color
+              <input
+                type="color"
+                value={editColor}
+                onChange={(e) => setEditColor(e.target.value)}
+                className="h-[38px] w-full cursor-pointer rounded-lg border border-slate-200 bg-white p-1"
+              />
+            </label>
+            <button
+              disabled={saving}
+              className="h-[38px] rounded-lg bg-blue-600 px-5 text-xs font-bold text-white hover:bg-blue-700 disabled:opacity-50"
+            >
+              {saving ? "Saving..." : "Update"}
+            </button>
+          </div>
+        </form>
+      )}
+
       {teams.length === 0 ? (
         <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center">
           <p className="text-base font-extrabold text-slate-800">No teams in this tournament yet</p>
@@ -385,12 +515,13 @@ export function TeamDetailPage() {
             const totalPurse = Number(team.total_purse);
             const remainingPurse = Number(team.remaining_purse);
             const spent = Math.max(0, totalPurse - remainingPurse);
+            const isConfirming = confirmDeleteTeamId === team.id;
 
             return (
-              <button
+              <div
                 key={team.id}
                 onClick={() => setSelectedTeamId(team.id)}
-                className="group rounded-xl border border-slate-200 bg-white p-5 text-left transition hover:-translate-y-0.5 hover:border-emerald-300"
+                className="group cursor-pointer rounded-xl border border-slate-200 bg-white p-5 text-left transition hover:-translate-y-0.5 hover:border-emerald-300"
               >
                 <div className="flex items-center gap-4">
                   <div
@@ -407,11 +538,43 @@ export function TeamDetailPage() {
                       Owner / Captain: {team.captain_name || "TBD"}
                     </p>
                   </div>
-                  <Icon
-                    name="chevron"
-                    size={18}
-                    className="text-slate-300 group-hover:text-emerald-600"
-                  />
+                  <div
+                    className="flex items-center gap-1.5"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {isConfirming ? (
+                      <>
+                        <button
+                          disabled={saving}
+                          onClick={() => void handleDeleteTeam(team.id)}
+                          className="rounded-md bg-red-600 px-2.5 py-1 text-[10px] font-bold text-white"
+                        >
+                          Confirm
+                        </button>
+                        <button
+                          onClick={() => setConfirmDeleteTeamId(null)}
+                          className="rounded-md border border-slate-200 px-2.5 py-1 text-[10px] font-bold text-slate-600"
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => startEditTeam(team)}
+                          className="rounded-md border border-slate-200 px-2.5 py-1 text-[10px] font-bold text-slate-600 hover:bg-slate-50"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => setConfirmDeleteTeamId(team.id)}
+                          className="rounded-md border border-red-200 bg-red-50 px-2.5 py-1 text-[10px] font-bold text-red-600 hover:bg-red-100"
+                        >
+                          Delete
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
 
                 <div className="mt-5 grid grid-cols-3 divide-x divide-slate-100 rounded-lg bg-slate-50 py-3">
@@ -441,7 +604,7 @@ export function TeamDetailPage() {
                     </p>
                   </div>
                 </div>
-              </button>
+              </div>
             );
           })}
         </div>

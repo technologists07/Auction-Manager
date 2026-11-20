@@ -2,16 +2,23 @@ import { useState } from "react";
 import { Icon } from "../components/Icon";
 import { formatINR, useAuction } from "../context/AuctionContext";
 import { playerImages } from "../data/mockData";
-import { Screen } from "../types/auction";
+import { DbPlayer, Screen } from "../types/auction";
 
 export function PlayersPage({ navigate }: { navigate: (screen: Screen) => void }) {
-  const { players, createPlayer } = useAuction();
+  const { players, createPlayer, updatePlayer, deletePlayer } = useAuction();
   const [query, setQuery] = useState("");
   const [addOpen, setAddOpen] = useState(false);
 
   const [playerName, setPlayerName] = useState("");
   const [playerRole, setPlayerRole] = useState("Batsman");
   const [basePrice, setBasePrice] = useState("3000");
+
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editRole, setEditRole] = useState("Batsman");
+  const [editPrice, setEditPrice] = useState("");
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
 
   const filtered = players.filter(
     (p) =>
@@ -28,6 +35,39 @@ export function PlayersPage({ navigate }: { navigate: (screen: Screen) => void }
     });
     setPlayerName("");
     setAddOpen(false);
+  };
+
+  const startEdit = (p: DbPlayer) => {
+    setEditingId(p.id);
+    setEditName(p.name);
+    setEditRole(p.role);
+    setEditPrice(String(p.base_price));
+    setConfirmDeleteId(null);
+  };
+
+  const saveEdit = async (playerId: string) => {
+    if (!editName.trim()) return;
+    setBusyId(playerId);
+    try {
+      await updatePlayer(playerId, {
+        name: editName.trim(),
+        role: editRole,
+        base_price: Number(editPrice) || 3000,
+      });
+      setEditingId(null);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleDelete = async (playerId: string) => {
+    setBusyId(playerId);
+    try {
+      await deletePlayer(playerId);
+      setConfirmDeleteId(null);
+    } finally {
+      setBusyId(null);
+    }
   };
 
   return (
@@ -87,7 +127,7 @@ export function PlayersPage({ navigate }: { navigate: (screen: Screen) => void }
                 placeholder="Base ₹"
               />
               <button
-                onClick={handleSavePlayer}
+                onClick={() => void handleSavePlayer()}
                 className="rounded-md bg-emerald-600 px-4 py-2 text-[10px] font-bold text-white"
               >
                 Save
@@ -115,50 +155,138 @@ export function PlayersPage({ navigate }: { navigate: (screen: Screen) => void }
               <th className="px-3 py-3">Role</th>
               <th className="px-3 py-3">Base Price</th>
               <th className="px-3 py-3">Status</th>
+              <th className="px-5 py-3 text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-5 py-10 text-center text-xs text-slate-400">
+                <td colSpan={5} className="px-5 py-10 text-center text-xs text-slate-400">
                   No players yet. Click "Add Player" or "Import Excel" above.
                 </td>
               </tr>
             ) : (
-              filtered.map((p, idx) => (
-                <tr key={p.id} className="border-t border-slate-100 text-xs hover:bg-slate-50/60">
-                  <td className="px-5 py-3">
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={playerImages[idx % playerImages.length]}
-                        alt=""
-                        className="h-9 w-9 rounded-lg object-cover"
-                      />
-                      <div>
-                        <p className="font-bold text-slate-800">{p.name}</p>
-                        <p className="text-[9px] text-slate-400">Lot #{p.queue_order || idx + 1}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-3 py-3 text-slate-500">{p.role}</td>
-                  <td className="px-3 py-3 font-bold text-slate-700">
-                    {formatINR(p.base_price)}
-                  </td>
-                  <td className="px-3 py-3">
-                    <span
-                      className={`rounded-full px-2 py-1 text-[9px] font-bold uppercase ${
-                        p.status === "sold"
-                          ? "bg-blue-50 text-blue-600"
-                          : p.status === "unsold"
-                            ? "bg-red-50 text-red-600"
-                            : "bg-emerald-50 text-emerald-700"
-                      }`}
-                    >
-                      {p.status}
-                    </span>
-                  </td>
-                </tr>
-              ))
+              filtered.map((p, idx) => {
+                const isEditing = editingId === p.id;
+                const isConfirming = confirmDeleteId === p.id;
+                return (
+                  <tr key={p.id} className="border-t border-slate-100 text-xs hover:bg-slate-50/60">
+                    <td className="px-5 py-3">
+                      {isEditing ? (
+                        <input
+                          value={editName}
+                          onChange={(e) => setEditName(e.target.value)}
+                          className="w-full rounded-md border border-slate-200 px-2.5 py-1.5 text-xs font-bold text-slate-800"
+                        />
+                      ) : (
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={playerImages[idx % playerImages.length]}
+                            alt=""
+                            className="h-9 w-9 rounded-lg object-cover"
+                          />
+                          <div>
+                            <p className="font-bold text-slate-800">{p.name}</p>
+                            <p className="text-[9px] text-slate-400">Lot #{p.queue_order || idx + 1}</p>
+                          </div>
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-3 py-3 text-slate-500">
+                      {isEditing ? (
+                        <select
+                          value={editRole}
+                          onChange={(e) => setEditRole(e.target.value)}
+                          className="rounded-md border border-slate-200 px-2 py-1.5 text-xs"
+                        >
+                          <option>Batsman</option>
+                          <option>Fast Bowler</option>
+                          <option>Spin Bowler</option>
+                          <option>All-rounder</option>
+                          <option>Wicket-keeper</option>
+                        </select>
+                      ) : (
+                        p.role
+                      )}
+                    </td>
+                    <td className="px-3 py-3 font-bold text-slate-700">
+                      {isEditing ? (
+                        <input
+                          type="number"
+                          value={editPrice}
+                          onChange={(e) => setEditPrice(e.target.value)}
+                          className="w-24 rounded-md border border-slate-200 px-2 py-1.5 text-xs font-bold"
+                        />
+                      ) : (
+                        formatINR(p.base_price)
+                      )}
+                    </td>
+                    <td className="px-3 py-3">
+                      <span
+                        className={`rounded-full px-2 py-1 text-[9px] font-bold uppercase ${
+                          p.status === "sold"
+                            ? "bg-blue-50 text-blue-600"
+                            : p.status === "unsold"
+                              ? "bg-red-50 text-red-600"
+                              : "bg-emerald-50 text-emerald-700"
+                        }`}
+                      >
+                        {p.status}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3 text-right">
+                      {isEditing ? (
+                        <div className="inline-flex gap-1.5">
+                          <button
+                            disabled={busyId === p.id}
+                            onClick={() => void saveEdit(p.id)}
+                            className="rounded-md bg-emerald-600 px-2.5 py-1 text-[10px] font-bold text-white"
+                          >
+                            Save
+                          </button>
+                          <button
+                            onClick={() => setEditingId(null)}
+                            className="rounded-md border border-slate-200 px-2.5 py-1 text-[10px] font-bold text-slate-600"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : isConfirming ? (
+                        <div className="inline-flex items-center gap-1.5">
+                          <button
+                            disabled={busyId === p.id}
+                            onClick={() => void handleDelete(p.id)}
+                            className="rounded-md bg-red-600 px-2.5 py-1 text-[10px] font-bold text-white"
+                          >
+                            Confirm
+                          </button>
+                          <button
+                            onClick={() => setConfirmDeleteId(null)}
+                            className="rounded-md border border-slate-200 px-2.5 py-1 text-[10px] font-bold text-slate-600"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="inline-flex gap-1.5">
+                          <button
+                            onClick={() => startEdit(p)}
+                            className="rounded-md border border-slate-200 px-2.5 py-1 text-[10px] font-bold text-slate-600 hover:bg-slate-50"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => setConfirmDeleteId(p.id)}
+                            className="rounded-md border border-red-200 bg-red-50 px-2.5 py-1 text-[10px] font-bold text-red-600 hover:bg-red-100"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>

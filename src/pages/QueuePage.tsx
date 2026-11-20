@@ -8,6 +8,7 @@ export function QueuePage({ start }: { start: () => void }) {
   const { activeTournament, players, saveQueueOrder } = useAuction();
   const [queue, setQueue] = useState<DbPlayer[]>([]);
   const [dragging, setDragging] = useState<number | null>(null);
+  const [lastMovedId, setLastMovedId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -17,6 +18,18 @@ export function QueuePage({ start }: { start: () => void }) {
         .sort((a, b) => a.queue_order - b.queue_order),
     );
   }, [players]);
+
+  useEffect(() => {
+    if (!lastMovedId) return;
+    const clearHighlight = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target?.closest("button")) {
+        setLastMovedId(null);
+      }
+    };
+    document.addEventListener("click", clearHighlight, true);
+    return () => document.removeEventListener("click", clearHighlight, true);
+  }, [lastMovedId]);
 
   const persist = async (next: DbPlayer[]) => {
     setQueue(next);
@@ -32,7 +45,9 @@ export function QueuePage({ start }: { start: () => void }) {
     const next = [...queue];
     const j = i + delta;
     if (j < 0 || j >= next.length) return;
+    const movedPlayer = next[i];
     [next[i], next[j]] = [next[j], next[i]];
+    setLastMovedId(movedPlayer.id);
     void persist(next);
   };
 
@@ -42,6 +57,7 @@ export function QueuePage({ start }: { start: () => void }) {
     const [item] = next.splice(dragging, 1);
     next.splice(target, 0, item);
     setDragging(null);
+    setLastMovedId(item.id);
     void persist(next);
   };
 
@@ -84,47 +100,61 @@ export function QueuePage({ start }: { start: () => void }) {
             </div>
           ) : (
             <div>
-              {queue.map((p, i) => (
-                <div
-                  draggable
-                  onDragStart={() => setDragging(i)}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={() => dropAt(i)}
-                  onDragEnd={() => setDragging(null)}
-                  key={p.id}
-                  className={`grid grid-cols-[50px_1fr_1fr_100px] items-center border-t border-slate-100 px-5 py-3 text-xs hover:bg-slate-50 ${
-                    dragging === i ? "opacity-40" : ""
-                  }`}
-                >
-                  <div className="flex items-center gap-2 text-slate-400">
-                    <span className="cursor-grab text-base">≡</span>
-                    <b>#{i + 1}</b>
+              {queue.map((p, i) => {
+                const isHighlighted = p.id === lastMovedId;
+                return (
+                  <div
+                    draggable
+                    onDragStart={() => setDragging(i)}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={() => dropAt(i)}
+                    onDragEnd={() => setDragging(null)}
+                    key={p.id}
+                    className={`grid grid-cols-[50px_1fr_1fr_100px] items-center border-t border-slate-100 px-5 py-3 text-xs transition ${
+                      dragging === i
+                        ? "opacity-40"
+                        : isHighlighted
+                          ? "border-l-4 border-l-emerald-500 bg-emerald-50/70"
+                          : "hover:bg-slate-50"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 text-slate-400">
+                      <span className="cursor-grab text-base">≡</span>
+                      <b className={isHighlighted ? "text-emerald-700" : ""}>#{i + 1}</b>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={playerImages[i % playerImages.length]}
+                        className="h-9 w-9 rounded-lg object-cover"
+                        alt=""
+                      />
+                      <b className={isHighlighted ? "text-emerald-900" : "text-slate-800"}>
+                        {p.name}
+                      </b>
+                      {isHighlighted && (
+                        <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-[9px] font-bold text-white">
+                          Moved
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-slate-500">{p.role}</span>
+                    <div className="flex justify-end gap-1">
+                      <button
+                        onClick={() => move(i, -1)}
+                        className="flex h-7 w-7 items-center justify-center rounded border border-slate-200 bg-white text-slate-500 hover:border-emerald-300"
+                      >
+                        ↑
+                      </button>
+                      <button
+                        onClick={() => move(i, 1)}
+                        className="flex h-7 w-7 items-center justify-center rounded border border-slate-200 bg-white text-slate-500 hover:border-emerald-300"
+                      >
+                        ↓
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={playerImages[i % playerImages.length]}
-                      className="h-9 w-9 rounded-lg object-cover"
-                      alt=""
-                    />
-                    <b className="text-slate-800">{p.name}</b>
-                  </div>
-                  <span className="text-slate-500">{p.role}</span>
-                  <div className="flex justify-end gap-1">
-                    <button
-                      onClick={() => move(i, -1)}
-                      className="flex h-7 w-7 items-center justify-center rounded border border-slate-200 text-slate-500"
-                    >
-                      ↑
-                    </button>
-                    <button
-                      onClick={() => move(i, 1)}
-                      className="flex h-7 w-7 items-center justify-center rounded border border-slate-200 text-slate-500"
-                    >
-                      ↓
-                    </button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </section>
