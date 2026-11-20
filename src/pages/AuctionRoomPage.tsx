@@ -6,6 +6,7 @@ import { playerImages } from "../data/mockData";
 export function AuctionRoomPage({ projector }: { projector: () => void }) {
   const {
     activeTournament,
+    maxPlayerBid,
     teams,
     players,
     bids,
@@ -263,16 +264,18 @@ export function AuctionRoomPage({ projector }: { projector: () => void }) {
                 </p>
                 <p className="text-[10px] text-slate-400">
                   Next: {formatINR(nextBidForClick)}
+                  {maxPlayerBid ? ` • Cap: ${formatINR(maxPlayerBid)}` : ""}
                 </p>
               </div>
               <div className="mt-3 grid grid-cols-2 gap-2">
                 {teams.map((t) => {
                   const overPurse = nextBidForClick > Number(t.remaining_purse);
+                  const overCap = Boolean(maxPlayerBid && nextBidForClick > maxPlayerBid);
                   const isLeading = leadingTeam?.id === t.id;
                   return (
                     <button
                       key={t.id}
-                      disabled={busy || !livePlayer || overPurse}
+                      disabled={busy || !livePlayer || overPurse || overCap}
                       onClick={() => {
                         setSelectedTeamId(t.id);
                         void runAction(() => placeTeamBid(t.id, nextBidForClick));
@@ -292,7 +295,11 @@ export function AuctionRoomPage({ projector }: { projector: () => void }) {
                       <span>
                         <b className="block text-[10px] text-slate-800">{t.name}</b>
                         <span className="text-[8px] text-slate-400">
-                          {overPurse ? "Over purse" : `Bid ${formatINR(nextBidForClick)}`}
+                          {overCap
+                            ? "At max cap"
+                            : overPurse
+                              ? "Over purse"
+                              : `Bid ${formatINR(nextBidForClick)}`}
                         </span>
                       </span>
                     </button>

@@ -12,6 +12,8 @@ export function SettingsPage({ dark, onTheme }: { dark: boolean; onTheme: () => 
     setCommunityName,
     primaryColor,
     setPrimaryColor,
+    maxPlayerBid,
+    setMaxPlayerBid,
     updateTournamentRules,
     resetActiveTournament,
     importPlayersBatch,
@@ -24,10 +26,11 @@ export function SettingsPage({ dark, onTheme }: { dark: boolean; onTheme: () => 
   const [defaultPurse, setDefaultPurse] = useState("100000");
   const [maxSquad, setMaxSquad] = useState("11");
   const [bidIncrement, setBidIncrement] = useState("500");
+  const [draftMaxCap, setDraftMaxCap] = useState(maxPlayerBid ? String(maxPlayerBid) : "");
 
   const [busy, setBusy] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
-  const [statusMsg, setStatusMsg] = useState<string | null>(null);
+  const [statusMsg, setStatusMsg] = useState<{ text: string; isError?: boolean } | null>(null);
 
   useEffect(() => {
     setDraftCommunityName(communityName);
@@ -36,6 +39,10 @@ export function SettingsPage({ dark, onTheme }: { dark: boolean; onTheme: () => 
   useEffect(() => {
     setDraftPrimaryColor(primaryColor);
   }, [primaryColor]);
+
+  useEffect(() => {
+    setDraftMaxCap(maxPlayerBid ? String(maxPlayerBid) : "");
+  }, [maxPlayerBid]);
 
   useEffect(() => {
     if (activeTournament) {
@@ -51,6 +58,8 @@ export function SettingsPage({ dark, onTheme }: { dark: boolean; onTheme: () => 
     try {
       setCommunityName(draftCommunityName.trim() || "Green Meadows Apartment");
       setPrimaryColor(draftPrimaryColor);
+      const parsedCap = Number(draftMaxCap);
+      setMaxPlayerBid(parsedCap > 0 ? parsedCap : null);
       if (activeTournament) {
         await updateTournamentRules({
           total_purse: Number(defaultPurse) || 100000,
@@ -58,9 +67,12 @@ export function SettingsPage({ dark, onTheme }: { dark: boolean; onTheme: () => 
           min_bid_increment: Number(bidIncrement) || 500,
         });
       }
-      setStatusMsg("Settings saved!");
+      setStatusMsg({ text: "Settings saved!" });
     } catch (err) {
-      setStatusMsg(err instanceof Error ? err.message : "Failed to save settings");
+      setStatusMsg({
+        text: err instanceof Error ? err.message : "Failed to save settings",
+        isError: true,
+      });
     } finally {
       setBusy(false);
     }
@@ -84,7 +96,7 @@ export function SettingsPage({ dark, onTheme }: { dark: boolean; onTheme: () => 
     a.download = `${(activeTournament?.name || "auction").replace(/\s+/g, "_")}_backup.json`;
     a.click();
     URL.revokeObjectURL(url);
-    setStatusMsg("Backup JSON downloaded.");
+    setStatusMsg({ text: "Backup JSON downloaded." });
   };
 
   const handleRestoreFile = async (file: File) => {
@@ -106,15 +118,18 @@ export function SettingsPage({ dark, onTheme }: { dark: boolean; onTheme: () => 
           }));
         if (toImport.length > 0) {
           await importPlayersBatch(toImport);
-          setStatusMsg(`Restored ${toImport.length} players from backup!`);
+          setStatusMsg({ text: `Restored ${toImport.length} players from backup!` });
         } else {
-          setStatusMsg("All players in backup already exist in this tournament.");
+          setStatusMsg({ text: "All players in backup already exist in this tournament." });
         }
       } else {
-        setStatusMsg("Backup file did not contain any player records.");
+        setStatusMsg({ text: "Backup file did not contain any player records.", isError: true });
       }
     } catch (err) {
-      setStatusMsg(err instanceof Error ? err.message : "Invalid backup JSON file");
+      setStatusMsg({
+        text: err instanceof Error ? err.message : "Invalid backup JSON file",
+        isError: true,
+      });
     } finally {
       setBusy(false);
     }
@@ -126,9 +141,14 @@ export function SettingsPage({ dark, onTheme }: { dark: boolean; onTheme: () => 
     try {
       await resetActiveTournament();
       setConfirmReset(false);
-      setStatusMsg("Tournament reset: all players returned to queue and team purses restored.");
+      setStatusMsg({
+        text: "Tournament reset: all players returned to queue and team purses restored.",
+      });
     } catch (err) {
-      setStatusMsg(err instanceof Error ? err.message : "Failed to reset tournament");
+      setStatusMsg({
+        text: err instanceof Error ? err.message : "Failed to reset tournament",
+        isError: true,
+      });
     } finally {
       setBusy(false);
     }
@@ -146,8 +166,14 @@ export function SettingsPage({ dark, onTheme }: { dark: boolean; onTheme: () => 
       <div className="mb-6 flex items-center justify-between">
         <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">Settings</h2>
         {statusMsg && (
-          <span className="rounded-full bg-emerald-50 px-3 py-2 text-[10px] font-bold text-emerald-700">
-            {statusMsg}
+          <span
+            className={`rounded-full px-3 py-2 text-[10px] font-bold ${
+              statusMsg.isError
+                ? "bg-red-50 text-red-700"
+                : "bg-emerald-50 text-emerald-700"
+            }`}
+          >
+            {statusMsg.text}
           </span>
         )}
       </div>
@@ -212,9 +238,9 @@ export function SettingsPage({ dark, onTheme }: { dark: boolean; onTheme: () => 
 
         <SettingsSection
           title="Auction Settings"
-          subtitle="Rules for the active tournament in Supabase"
+          subtitle="Rules for the active tournament"
         >
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <label className="field-label">
               Team Purse (₹)
               <input
@@ -240,6 +266,17 @@ export function SettingsPage({ dark, onTheme }: { dark: boolean; onTheme: () => 
                 className="field-input"
                 value={bidIncrement}
                 onChange={(e) => setBidIncrement(e.target.value)}
+              />
+            </label>
+            <label className="field-label">
+              Max Player Bid Cap (₹)
+              <input
+                type="number"
+                min="0"
+                className="field-input"
+                placeholder="No limit (leave blank or 0)"
+                value={draftMaxCap}
+                onChange={(e) => setDraftMaxCap(e.target.value)}
               />
             </label>
           </div>
@@ -301,13 +338,15 @@ export function SettingsPage({ dark, onTheme }: { dark: boolean; onTheme: () => 
               <div className="ml-auto flex items-center gap-2">
                 <span className="text-[11px] font-bold text-red-600">Are you sure?</span>
                 <button
+                  type="button"
                   disabled={busy}
                   onClick={() => void handleResetTournament()}
-                  className="rounded-lg bg-red-600 px-3 py-2 text-xs font-bold text-white hover:bg-red-700"
+                  className="rounded-lg bg-red-600 px-3 py-2 text-xs font-bold text-white hover:bg-red-700 disabled:opacity-50"
                 >
-                  Yes, Reset All
+                  {busy ? "Resetting..." : "Yes, Reset All"}
                 </button>
                 <button
+                  type="button"
                   onClick={() => setConfirmReset(false)}
                   className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600"
                 >

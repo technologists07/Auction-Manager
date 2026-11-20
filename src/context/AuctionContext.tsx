@@ -42,6 +42,8 @@ interface AuctionContextValue {
   setCommunityName: (name: string) => void;
   primaryColor: string;
   setPrimaryColor: (color: string) => void;
+  maxPlayerBid: number | null;
+  setMaxPlayerBid: (cap: number | null) => void;
   setActiveTournamentId: (id: string) => void;
   refreshAll: () => Promise<void>;
   createTournament: (input: CreateTournamentInput) => Promise<DbTournament>;
@@ -66,6 +68,7 @@ const STORAGE_KEY = "auctionpro_active_tournament_id";
 const LAST_FINISHED_KEY = "auctionpro_last_finished_player";
 const COMMUNITY_NAME_KEY = "auctionpro_community_name";
 const PRIMARY_COLOR_KEY = "auctionpro_primary_color";
+const MAX_BID_CAP_KEY = "auctionpro_max_player_bid";
 
 export function formatINR(amount: number | null | undefined): string {
   const val = Number(amount ?? 0);
@@ -225,6 +228,29 @@ export function AuctionProvider({ children }: { children: React.ReactNode }) {
 
   const activeTournament = tournaments.find((t) => t.id === activeTournamentId) ?? null;
 
+  const [maxPlayerBid, setMaxPlayerBidState] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!activeTournament?.id) {
+      setMaxPlayerBidState(null);
+      return;
+    }
+    const raw = localStorage.getItem(`${MAX_BID_CAP_KEY}_${activeTournament.id}`);
+    const parsed = raw ? Number(raw) : 0;
+    setMaxPlayerBidState(parsed > 0 ? parsed : null);
+  }, [activeTournament?.id]);
+
+  const setMaxPlayerBid = (cap: number | null) => {
+    if (!activeTournament?.id) return;
+    if (cap && cap > 0) {
+      localStorage.setItem(`${MAX_BID_CAP_KEY}_${activeTournament.id}`, String(cap));
+      setMaxPlayerBidState(cap);
+    } else {
+      localStorage.removeItem(`${MAX_BID_CAP_KEY}_${activeTournament.id}`);
+      setMaxPlayerBidState(null);
+    }
+  };
+
   const createTournament = async (input: CreateTournamentInput): Promise<DbTournament> => {
     const { data, error: err } = await supabase
       .from("tournaments")
@@ -264,22 +290,7 @@ export function AuctionProvider({ children }: { children: React.ReactNode }) {
     if (!activeTournament) throw new Error("No active tournament to reset.");
     const tid = activeTournament.id;
 
-    await supabase.from("bids").delete().eq("tournament_id", tid);
-    await supabase
-      .from("players")
-      .update({ status: "queued", team_id: null, sold_price: null })
-      .eq("tournament_id", tid);
-
-    await Promise.all(
-      teams.map((t) =>
-        supabase
-          .from("teams")
-          .update({ remaining_purse: Number(t.total_purse) })
-          .eq("id", t.id),
-      ),
-    );
-
-    await supabase
+    const { error: tResetErr } = await supabase
       .from("tournaments")
       .update({
         status: "draft",
@@ -288,7 +299,31 @@ export function AuctionProvider({ children }: { children: React.ReactNode }) {
         highest_bidder_team_id: null,
       })
       .eq("id", tid);
+    if (tResetErr) throw new Error(`Failed to reset tournament status: ${tResetErr.message}`);
 
+    const { error: bidsErr } = await supabase.from("bids").delete().eq("tournament_id", tid);
+    if (bidsErr) throw new Error(`Failed to clear bids: ${bidsErr.message}`);
+
+    const { error: playersErr } = await supabase
+      .from("players")
+      .update({ status: "queued", team_id: null, sold_price: null })
+      .eq("tournament_id", tid);
+    if (playersErr) throw new Error(`Failed to reset players: ${playersErr.message}`);
+
+    const teamResults = await Promise.all(
+      teams.map((t) =>
+        supabase
+          .from("teams")
+          .update({ remaining_purse: Number(t.total_purse) })
+          .eq("id", t.id),
+      ),
+    );
+    const failedTeam = teamResults.find((r) => r.error);
+    if (failedTeam?.error) {
+      throw new Error(`Failed to restore team purses: ${failedTeam.error.message}`);
+    }
+
+    localStorage.removeItem(`${LAST_FINISHED_KEY}_${tid}`);
     await Promise.all([fetchTournaments(), fetchTournamentData(tid)]);
   };
 
@@ -408,6 +443,9 @@ export function AuctionProvider({ children }: { children: React.ReactNode }) {
       throw new Error(
         `Opening bid cannot be less than base price ${formatINR(livePlayer.base_price)}.`,
       );
+    }
+    if (maxPlayerBid && maxPlayerBid > 0 && amount > maxPlayerBid) {
+      throw new Error(`Bid exceeds the maximum player cap of ${formatINR(maxPlayerBid)}.`);
     }
     if (amount > Number(team.remaining_purse)) {
       throw new Error(`${team.name} only has ${formatINR(team.remaining_purse)} remaining.`);
@@ -656,6 +694,8 @@ export function AuctionProvider({ children }: { children: React.ReactNode }) {
         setCommunityName,
         primaryColor,
         setPrimaryColor,
+        maxPlayerBid,
+        setMaxPlayerBid,
         setActiveTournamentId,
         refreshAll,
         createTournament,
