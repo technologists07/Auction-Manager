@@ -57,7 +57,14 @@ function AppShell() {
           <Route path="/import" element={<ImportPlayersPage done={() => navigate("players")} />} />
           <Route path="/teams" element={<TeamDetailPage />} />
           <Route path="/queue" element={<QueuePage start={() => navigate("auction")} />} />
-          <Route path="/auction" element={<AuctionRoomPage projector={() => navigate("projector")} />} />
+          <Route
+            path="/auction"
+            element={
+              <AuctionRoomPage
+                projector={() => window.open("/projector", "_blank", "noopener,noreferrer")}
+              />
+            }
+          />
           <Route path="/reports" element={<ReportsPage />} />
           <Route path="/settings" element={<SettingsPage dark={dark} onTheme={toggleTheme} />} />
           <Route path="*" element={<Navigate to="/" replace />} />
